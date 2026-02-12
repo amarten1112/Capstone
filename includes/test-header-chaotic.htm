@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virginia Market Square - Chaotic Design Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: #f9f7f4;
+        }
+
+        /* CHAOTIC HEADER DESIGN - 2026 TREND INSPIRED */
+        .header-container {
+            position: relative;
+            background: linear-gradient(135deg, #2d5016 0%, #6ba547 50%, #f4d03f 100%);
+            min-height: 200px;
+            overflow: hidden;
+            padding: 20px 0;
+        }
+
+        /* Chaotic Background Elements */
+        .chaos-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Angled strips (like the inspiration image) */
+        .strip {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(-15deg);
+            z-index: 2;
+        }
+
+        .strip1 {
+            width: 300px;
+            height: 80px;
+            top: -30px;
+            left: 10%;
+            background: rgba(255, 211, 0, 0.3);
+            transform: rotate(20deg);
+        }
+
+        .strip2 {
+            width: 250px;
+            height: 60px;
+            top: 40%;
+            right: 5%;
+            background: rgba(52, 152, 219, 0.2);
+            transform: rotate(-25deg);
+        }
+
+        .strip3 {
+            width: 200px;
+            height: 50px;
+            bottom: 10%;
+            left: 20%;
+            background: rgba(45, 80, 22, 0.15);
+            transform: rotate(35deg);
+        }
+
+        /* Decorative circles (floating elements) */
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.7;
+            z-index: 2;
+        }
+
+        .circle1 {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            top: 20%;
+            right: 15%;
+            border: 3px solid rgba(244, 208, 63, 0.8);
+        }
+
+        .circle2 {
+            width: 90px;
+            height: 90px;
+            background: rgba(107, 165, 71, 0.3);
+            bottom: 15%;
+            right: 10%;
+            border: 2px dashed rgba(255, 211, 0, 0.6);
+        }
+
+        .circle3 {
+            width: 70px;
+            height: 70px;
+            background: rgba(52, 152, 219, 0.25);
+            top: 50%;
+            left: 8%;
+            border: 3px solid rgba(45, 80, 22, 0.7);
+        }
+
+        /* Wavy lines */
+        .wave {
+            position: absolute;
+            width: 300px;
+            height: 20px;
+            border-top: 3px solid rgba(244, 208, 63, 0.6);
+            border-radius: 50%;
+            transform: rotate(-20deg);
+            z-index: 2;
+        }
+
+        .wave1 {
+            top: 10%;
+            left: 5%;
+        }
+
+        .wave2 {
+            bottom: 20%;
+            right: 20%;
+            border-top: 3px dashed rgba(52, 152, 219, 0.5);
+            width: 250px;
+        }
+
+        /* HEADER CONTENT - Positioned on top */
+        .header-content {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        /* Logo/Brand */
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 11;
+            position: relative;
+        }
+
+        .brand-title {
+            font-size: 36px;
+            font-weight: 900;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transform: skewX(-10deg);
+            background: rgba(45, 80, 22, 0.8);
+            padding: 8px 15px;
+            display: inline-block;
+            margin-bottom: -5px;
+            box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand-subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            background: rgba(244, 208, 63, 0.9);
+            color: #2d5016;
+            padding: 5px 12px;
+            display: inline-block;
+            max-width: fit-content;
+            transform: rotate(-5deg);
+        }
+
+        /* Navigation */
+        .nav-menu {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 10px 15px;
+            position: relative;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-menu a:hover {
+            color: #f4d03f;
+            transform: scale(1.1) rotate(2deg);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+        }
+
+        /* Search/CTA Button */
+        .header-cta {
+            background: #f4d03f;
+            color: #2d5016;
+            border: 3px solid #2d5016;
+            padding: 12px 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            transform: rotate(-3deg);
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-cta:hover {
+            background: #2d5016;
+            color: #f4d03f;
+            transform: rotate(3deg) scale(1.05);
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Cart Icon */
+        .cart-icon {
+            font-size: 28px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .cart-icon:hover {
+            transform: rotate(15deg) scale(1.2);
+            color: #f4d03f;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f4d03f;
+            color: #2d5016;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            border: 2px solid white;
+        }
+
+        /* Tagline banner (bottom accent) */
+        .tagline-banner {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(45, 80, 22, 0.95);
+            padding: 12px 20px;
+            text-align: center;
+            z-index: 5;
+            color: #f4d03f;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .brand-title {
+                font-size: 28px;
+            }
+
+            .brand-subtitle {
+                font-size: 12px;
+            }
+
+            .nav-menu {
+                gap: 15px;
+                width: 100%;
+            }
+
+            .nav-menu a {
+                font-size: 14px;
+                padding: 8px 10px;
+            }
+
+            .header-cta {
+                font-size: 12px;
+                padding: 10px 20px;
+            }
+
+            /* Hide some chaotic elements on mobile for clarity */
+            .strip2, .circle2, .wave2 {
+                display: none;
+            }
+        }
+
+        /* Content area below header for testing */
+        .content {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .content h2 {
+            color: #2d5016;
+            margin-bottom: 15px;
+        }
+
+        .content p {
+            color: #333;
+            line-height: 1.6;
+        }
+
+    </style>
+</head>
+<body>
+
+<header class="header-container">
+    <!-- Chaotic background elements -->
+    <div class="chaos-bg">
+        <div class="strip strip1"></div>
+        <div class="strip strip2"></div>
+        <div class="strip strip3"></div>
+        
+        <div class="circle circle1"></div>
+        <div class="circle circle2"></div>
+        <div class="circle circle3"></div>
+        
+        <div class="wave wave1"></div>
+        <div class="wave wave2"></div>
+    </div>
+
+    <!-- Main header content -->
+    <div class="header-content">
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-title">🌱 Local Market</div>
+            <div class="brand-subtitle">Fresh from the farm</div>
+        </div>
+
+        <!-- Navigation -->
+        <nav>
+            <ul class="nav-menu">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Vendors</a></li>
+                <li><a href="#">Products</a></li>
+                <li><a href="#">About</a></li>
+            </ul>
+        </nav>
+
+        <!-- CTA and Cart -->
+        <div style="display: flex; gap: 20px; align-items: center; z-index: 11; position: relative;">
+            <button class="header-cta">Shop Now</button>
+            <div class="cart-icon">
+                🛒
+                <span class="cart-badge">3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tagline banner -->
+    <div class="tagline-banner">
+        ⭐ Discover Local Produce, Handmade Goods & More ⭐
+    </div>
+</header>
+
+<!-- Content area for testing -->
+<main class="content">
+    <h2>Design Test: Chaotic/Trendy 2026 Style</h2>
+    <p>
+        This header prototype explores 2026 design trends with chaotic elements including angled strips, 
+        floating circles, wavy lines, and playful typography while maintaining a farmers market brand identity. 
+        The design breaks strict traditional rules but still uses key design elements: <strong>line, shape, color, 
+        space, emphasis, and movement</strong> in a more dynamic, energetic way.
+    </p>
+    <p style="margin-top: 20px; color: #6ba547;">
+        <strong>Design Elements Used:</strong> Bold color contrast (green, gold, blue), 
+        rotated/skewed text, layered transparent shapes, playful hover effects, and dynamic positioning.
+    </p>
+</main>
+
+</body>
+</html>
