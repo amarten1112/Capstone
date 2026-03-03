@@ -27,8 +27,7 @@ include 'includes/header.php';
 ?>
 
 <!-- HERO BANNER SECTION -->
-<div class="hero-banner mb-5" style="background: linear-gradient(135deg, #2d5016 0%, #6ba547 100%); 
-    color: white; padding: 80px 20px; border-radius: 8px; text-align: center;">
+<div class="hero-banner mb-5">
     <h1 class="display-4 fw-bold mb-3">🌱 We Believe in Local!</h1>
     <p class="lead mb-4">
         Supporting local farmers, makers, and producers within 50 miles of Virginia, Minnesota.
@@ -44,18 +43,18 @@ include 'includes/header.php';
 </div>
 
 <!-- MARKET SCHEDULE SECTION -->
-<section class="mb-5 p-4" style="background-color: #f0f4e8; border-radius: 8px; border-left: 4px solid #2d5016;">
+<section class="mb-5 section-highlight">
     <h2 class="mb-4"><i class="fas fa-calendar"></i> Market Schedule</h2>
     <div class="row">
         <div class="col-md-6 mb-3">
-            <div style="background: white; padding: 20px; border-radius: 8px; border-top: 4px solid #6ba547;">
+            <div class="info-card card-top-accent-green">
                 <h4 class="text-success">📅 Open for the Season!</h4>
                 <p class="mb-2"><strong>June through October</strong></p>
                 <p class="mb-0"><strong>Every Thursday</strong><br>2:30 PM - 6:00 PM</p>
             </div>
         </div>
         <div class="col-md-6 mb-3">
-            <div style="background: white; padding: 20px; border-radius: 8px; border-top: 4px solid #d4a574;">
+            <div class="info-card card-top-accent-earth">
                 <h4 class="text-warning">📍 Location</h4>
                 <p class="mb-0">
                     111 South 9th Avenue W<br>
@@ -104,24 +103,24 @@ include 'includes/header.php';
         // Loop through each vendor and display as a card
         while ($vendor = $result_vendors->fetch_assoc()) {
             echo '<div class="col-md-6 col-lg-4 mb-3">';
-            echo '  <div class="card h-100 shadow-sm" style="border-top: 4px solid #6ba547; transition: transform 0.3s;">';
+            echo '  <div class="card h-100 shadow-sm card-top-accent-green vendor-card">';
             
             // Vendor image
             if (!empty($vendor['image_url'])) {
-                echo '    <img src="' . htmlspecialchars($vendor['image_url']) . '" class="card-img-top" alt="' . htmlspecialchars($vendor['vendor_name']) . '" style="height: 200px; object-fit: cover;">';
+                echo '    <img src="' . htmlspecialchars($vendor['image_url']) . '" class="card-img-top vendor-card-image" alt="' . htmlspecialchars($vendor['vendor_name']) . '">';
             } else {
                 // Placeholder if no image
-                echo '    <div class="card-img-top" style="height: 200px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center;">';
+                echo '    <div class="card-img-top vendor-card-image-placeholder">';
                 echo '      <span class="text-muted">No image available</span>';
                 echo '    </div>';
             }
             
             echo '    <div class="card-body">';
             echo '      <h5 class="card-title">' . htmlspecialchars($vendor['vendor_name']) . '</h5>';
-            echo '      <p class="card-text text-muted" style="font-size: 0.9rem;">';
+            echo '      <p class="card-text text-muted text-sm">';
             echo '        <strong>Category:</strong> ' . htmlspecialchars($vendor['category']) . '<br>';
             echo '      </p>';
-            echo '      <p class="card-text" style="font-size: 0.95rem;">';
+            echo '      <p class="card-text text-md">';
             // Truncate description to 100 characters
             $description = htmlspecialchars($vendor['description']);
             if (strlen($description) > 100) {
@@ -189,7 +188,7 @@ include 'includes/header.php';
             $formatted_date = $event_date->format('M j, Y');
             
             echo '<div class="col-md-6 col-lg-3 mb-3">';
-            echo '  <div class="card shadow-sm" style="border-left: 4px solid #d4a574;">';
+            echo '  <div class="card shadow-sm card-left-accent-earth">';
             echo '    <div class="card-body">';
             echo '      <h5 class="card-title">' . htmlspecialchars($event['event_name']) . '</h5>';
             echo '      <p class="card-text mb-2">';
@@ -226,38 +225,38 @@ include 'includes/header.php';
 </section>
 
 <!-- WHAT WE'RE ABOUT SECTION -->
-<section class="mb-5" style="background-color: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+<section class="mb-5 about-section">
     <div class="row align-items-center">
         <div class="col-md-6 mb-4 mb-md-0">
             <h2 class="mb-3">Why Shop Local?</h2>
             <ul class="list-unstyled">
                 <li class="mb-3">
-                    <strong style="color: #2d5016;">🌱 Organic & Sustainable</strong><br>
+                    <strong class="text-primary-green">🌱 Organic & Sustainable</strong><br>
                     <span class="text-muted">Products are grown and made using eco-friendly, sustainable practices.</span>
                 </li>
                 <li class="mb-3">
-                    <strong style="color: #2d5016;">👨‍🌾 Support Local Producers</strong><br>
+                    <strong class="text-primary-green">👨‍🌾 Support Local Producers</strong><br>
                     <span class="text-muted">All vendors must be within 50 miles of Virginia, MN. Your money supports your neighbors.</span>
                 </li>
                 <li class="mb-3">
-                    <strong style="color: #2d5016;">🤝 Build Community</strong><br>
+                    <strong class="text-primary-green">🤝 Build Community</strong><br>
                     <span class="text-muted">Meet the people who grow and make your food. Connect with your community.</span>
                 </li>
                 <li class="mb-3">
-                    <strong style="color: #2d5016;">🏡 Fresh & Quality</strong><br>
+                    <strong class="text-primary-green">🏡 Fresh & Quality</strong><br>
                     <span class="text-muted">Farm-to-table products that are fresher and higher quality than mass-produced alternatives.</span>
                 </li>
             </ul>
             <a href="about.php" class="btn btn-success mt-3">Learn More About Us</a>
         </div>
         <div class="col-md-6">
-            <img src="images/farmers-market-hero.jpg" alt="Farmers Market" class="img-fluid rounded" style="max-width: 100%;">
+            <img src="images/farmers-market-hero.jpg" alt="Farmers Market" class="img-fluid rounded">
         </div>
     </div>
 </section>
 
 <!-- CALL TO ACTION SECTION -->
-<section style="background: linear-gradient(135deg, #2d5016 0%, #6ba547 100%); color: white; padding: 60px 20px; border-radius: 8px; text-align: center;">
+<section class="cta-section">
     <h2 class="mb-3">Ready to Shop Local?</h2>
     <p class="lead mb-4">
         Browse our vendor directory or visit us in person every Thursday!

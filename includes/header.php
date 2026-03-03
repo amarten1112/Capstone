@@ -13,54 +13,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($page_title) ? $page_title . ' - Virginia Market Square' : 'Virginia Market Square'; ?></title>
+    <title>
+        <?php
+        $base_title = 'Virginia Market Square';
+        $full_title = isset($page_title) && $page_title !== ''
+            ? $page_title . ' - ' . $base_title
+            : $base_title;
+        echo htmlspecialchars($full_title, ENT_QUOTES, 'UTF-8');
+        ?>
+    </title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Custom CSS -->
     <link href="css/style.css" rel="stylesheet">
-    
-    <style>
-        /* Quick custom styles - can be moved to style.css */
-        :root {
-            --primary-color: #2d5016;  /* Dark Green */
-            --secondary-color: #6ba547; /* Light Green */
-            --accent-color: #d4a574;   /* Earth tone */
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
-            background-color: #f9f7f4;
-        }
-        
-        .navbar {
-            background-color: var(--primary-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.5rem;
-            color: white !important;
-        }
-        
-        .nav-link {
-            color: rgba(255,255,255,0.8) !important;
-            margin: 0 0.5rem;
-            transition: color 0.3s;
-        }
-        
-        .nav-link:hover {
-            color: var(--accent-color) !important;
-        }
-    </style>
 </head>
 <body>
 
 <!-- Navigation Bar -->
-<nav class="navbar navbar-expand-lg navbar-dark">
+<nav class="navbar navbar-expand-lg navbar-dark" aria-label="Main navigation">
     <div class="container">
         <a class="navbar-brand" href="index.php">
             🌱 Virginia Market Square

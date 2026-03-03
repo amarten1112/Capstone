@@ -1,0 +1,117 @@
+/* Global theme variables */
+:root {
+    --primary-color: #2d5016;  /* Dark Green */
+    --secondary-color: #6ba547; /* Light Green */
+    --accent-color: #d4a574;   /* Earth tone */
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    background-color: #f9f7f4;
+}
+
+.navbar {
+    background-color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #ffffff !important;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    margin: 0 0.5rem;
+    transition: color 0.3s;
+}
+
+.nav-link:hover {
+    color: var(--accent-color) !important;
+}
+
+/* Homepage specific styles */
+
+.hero-banner {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: #ffffff;
+    padding: 80px 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.section-highlight {
+    background-color: #f0f4e8;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    padding: 1.5rem;
+}
+
+.card-top-accent-green {
+    border-top: 4px solid var(--secondary-color);
+}
+
+.card-top-accent-earth {
+    border-top: 4px solid var(--accent-color);
+}
+
+.card-left-accent-earth {
+    border-left: 4px solid var(--accent-color);
+}
+
+.info-card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.about-section {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cta-section {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: #ffffff;
+    padding: 60px 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Vendor and events cards */
+
+.vendor-card {
+    transition: transform 0.3s;
+}
+
+.vendor-card-image {
+    height: 200px;
+    object-fit: cover;
+}
+
+.vendor-card-image-placeholder {
+    height: 200px;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Typography helpers */
+
+.text-sm {
+    font-size: 0.9rem;
+}
+
+.text-md {
+    font-size: 0.95rem;
+}
+
+.text-primary-green {
+    color: var(--primary-color);
+}
+
