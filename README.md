@@ -393,7 +393,7 @@ All project documentation is in the `/docs/` folder:
 |---|---|
 | [`project_charter.pdf`](docs/project_charter.pdf) | Full project charter with objectives, scope, timeline, and sign-off |
 | [`database_design.pdf`](docs/database_design.pdf) | 12-table schema with field definitions, indexes, and SQL statements |
-| [`er_diagram.pdf`](docs/er_diagram.pdf) | Entity Relationship Diagram with crow's foot notation |
+| [`er_diagram.png`](docs/er_diagram.png) | Entity Relationship Diagram with crow's foot notation |
 | [`wireframes.pdf`](docs/wireframes.pdf) | 22-page wireframe set covering all public, vendor, and admin pages |
 
 ---
