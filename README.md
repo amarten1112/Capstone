@@ -149,9 +149,9 @@ The database uses **12 tables** normalized to **Third Normal Form (3NF)** with I
 | 11 | `contacts` | — | Contact form submissions |
 | 12 | `vendor_applications` | — | New vendor applications |
 
-> 📄 Full schema with CREATE TABLE statements: [`/docs/database_design.pdf`](docs/)
+> 📄 Full schema with CREATE TABLE statements: [`/docs/database_design.pdf`](docs/database_design.pdf)
 > 
-> 🗺️ ER Diagram: [`/docs/er_diagram.png`](docs/)
+> 🗺️ ER Diagram: [`/docs/er_diagram.png`](docs/er_diagram.png)
 
 ---
 
