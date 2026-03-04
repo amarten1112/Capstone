@@ -151,7 +151,7 @@ The database uses **12 tables** normalized to **Third Normal Form (3NF)** with I
 
 > 📄 Full schema with CREATE TABLE statements: [`/docs/database_design.pdf`](docs/)
 > 
-> 🗺️ ER Diagram: [`/docs/er_diagram.pdf`](docs/)
+> 🗺️ ER Diagram: [`/docs/er_diagram.png`](docs/)
 
 ---
 
