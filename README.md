@@ -329,13 +329,15 @@ Customer: customer@example.com           / Customer1234!
 ## Project Board Status
 
 <!-- PROJECT-STATUS:START -->
+## Project Board Status
+
 | Status | Count |
 |--------|-------|
-| 🔴 Todo | 0 |
-| 🟡 In Progress | 0 |
-| 🟢 Done | 0 |
+| Todo | 42 |
+| In Progress | 0 |
+| Done | 12 |
 
-*Last updated: pending first workflow run*
+> *Last updated automatically by GitHub Actions*
 <!-- PROJECT-STATUS:END -->
 
 > 🔄 This table is automatically updated by a [GitHub Actions workflow](.github/workflows/update-project-status.yml) that queries the [Farmers Market Square - Capstone](https://github.com/users/amarten1112/projects/3) project board via the GitHub GraphQL API.
