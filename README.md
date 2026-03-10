@@ -331,11 +331,22 @@ Customer: customer@example.com           / Customer1234!
 <!-- PROJECT-STATUS:START -->
 ## Project Board Status
 
+### Overall Board
+
 | Status | Count |
 |--------|-------|
 | Todo | 42 |
 | In Progress | 0 |
 | Done | 12 |
+
+### My Items (assigned to @amarten1112)
+
+| Status | Count |
+|--------|-------|
+| Todo | 6 |
+| In Progress | 0 |
+| Done | 2 |
+| **Total** | **8** |
 
 > *Last updated automatically by GitHub Actions*
 <!-- PROJECT-STATUS:END -->
