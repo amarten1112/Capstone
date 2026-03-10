@@ -2,7 +2,7 @@ name: Update Project Board Status in README
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 * * * *'  # Runs every hour
   issues:
     types: [opened, closed, edited, labeled, unlabeled, assigned, unassigned]
   workflow_dispatch:
@@ -19,24 +19,24 @@ jobs:
       - name: Query Project Board via GraphQL
         id: project
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
         run: |
           gh api graphql -f query='
-            query {
-              user(login: "amarten1112") {
-                projectV2(number: 3) {
-                  items(first: 100) {
-                    nodes {
-                      fieldValueByName(name: "Status") {
-                        ... on ProjectV2ItemFieldSingleSelectValue {
-                          name
-                        }
+          query {
+            user(login: "amarten1112") {
+              projectV2(number: 3) {
+                items(first: 100) {
+                  nodes {
+                    fieldValueByName(name: "Status") {
+                      ... on ProjectV2ItemFieldSingleSelectValue {
+                        name
                       }
                     }
                   }
                 }
               }
             }
+          }
           ' > project_data.json
 
           TODO=$(jq '[.data.user.projectV2.items.nodes[] | select(.fieldValueByName.name == "Todo")] | length' project_data.json)
