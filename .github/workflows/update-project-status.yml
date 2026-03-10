@@ -48,23 +48,45 @@ jobs:
           echo "done=$DONE" >> $GITHUB_OUTPUT
 
       - name: Update README
+        env:
+          TODO: ${{ steps.project.outputs.todo }}
+          IN_PROGRESS: ${{ steps.project.outputs.in_progress }}
+          DONE: ${{ steps.project.outputs.done }}
         run: |
-          TODO="${{ steps.project.outputs.todo }}"
-          IN_PROGRESS="${{ steps.project.outputs.in_progress }}"
-          DONE="${{ steps.project.outputs.done }}"
           TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+          python3 - <<'PYEOF'
+          import os, re, datetime
 
-          STATUS_BLOCK="<!-- PROJECT-STATUS:START -->
+          todo = os.environ['TODO']
+          in_progress = os.environ['IN_PROGRESS']
+          done = os.environ['DONE']
+          timestamp = os.environ.get('TIMESTAMP', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
+
+          block = f"""<!-- PROJECT-STATUS:START -->
 | Status | Count |
 |--------|-------|
-| 🔴 Todo | $TODO |
-| 🟡 In Progress | $IN_PROGRESS |
-| 🟢 Done | $DONE |
+| 🔴 Todo | {todo} |
+| 🟡 In Progress | {in_progress} |
+| 🟢 Done | {done} |
 
-*Last updated: $TIMESTAMP*
-<!-- PROJECT-STATUS:END -->"
+*Last updated: {timestamp}*
+<!-- PROJECT-STATUS:END -->"""
 
-          perl -i -0pe "s|<!-- PROJECT-STATUS:START -->.*?<!-- PROJECT-STATUS:END -->|$STATUS_BLOCK|s" README.md
+          with open('README.md', 'r') as f:
+              content = f.read()
+
+          new_content = re.sub(
+              r'<!-- PROJECT-STATUS:START -->.*?<!-- PROJECT-STATUS:END -->',
+              block,
+              content,
+              flags=re.DOTALL
+          )
+
+          with open('README.md', 'w') as f:
+              f.write(new_content)
+
+          print(f"Updated: Todo={todo}, In Progress={in_progress}, Done={done}")
+          PYEOF
 
       - name: Commit changes
         run: |
