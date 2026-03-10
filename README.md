@@ -339,14 +339,19 @@ Customer: customer@example.com           / Customer1234!
 | In Progress | 0 |
 | Done | 12 |
 
-### My Items (assigned to @amarten1112)
+### Phase Progress
 
-| Status | Count |
-|--------|-------|
-| Todo | 6 |
-| In Progress | 0 |
-| Done | 2 |
-| **Total** | **8** |
+| Phase | Status | Sub-tasks |
+|-------|--------|-----------|
+| Phase 1: Planning, Design & Database Architecture | Done | ██████████ 6/6 |
+| Phase 2: Advanced Database & Environment Setup | Done | ██████████ 4/4 |
+| Phase 3: User Authentication Systems | In progress | ░░░░░░░░░░ 0/5 |
+| Phase 4: Backend Pages & API Logic | Todo | ░░░░░░░░░░ 0/13 |
+| Phase 6: E-Commerce Payment Integration | Todo | ░░░░░░░░░░ 0/3 |
+| Phase 5: Frontend & Responsive Design | Todo | ░░░░░░░░░░ 0/11 |
+| Phase 7: JavaScript & Interactivity | Todo | ░░░░░░░░░░ 0/4 |
+| Phase 8: Content, Images & Sample Data | Todo | ░░░░░░░░░░ 0/2 |
+| Phase 9: Testing, Optimization & Deployment | Todo | ░░░░░░░░░░ 0/3 |
 
 > *Last updated automatically by GitHub Actions*
 <!-- PROJECT-STATUS:END -->
