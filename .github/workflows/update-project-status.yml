@@ -34,10 +34,12 @@ jobs:
                     }
                     content {
                       ... on Issue {
-                        assignees(first: 10) {
-                          nodes {
-                            login
-                          }
+                        number
+                        title
+                        state
+                        subIssuesSummary {
+                          total
+                          completed
                         }
                       }
                     }
@@ -52,25 +54,15 @@ jobs:
           IN_PROGRESS=$(jq '[.data.user.projectV2.items.nodes[] | select(.fieldValueByName.name == "In Progress")] | length' project_data.json)
           DONE=$(jq '[.data.user.projectV2.items.nodes[] | select(.fieldValueByName.name == "Done")] | length' project_data.json)
 
-          MY_TODO=$(jq '[.data.user.projectV2.items.nodes[] | select(.fieldValueByName.name == "Todo" and (.content.assignees.nodes // [] | map(.login) | contains(["amarten1112"])))] | length' project_data.json)
-          MY_IN_PROGRESS=$(jq '[.data.user.projectV2.items.nodes[] | select(.fieldValueByName.name == "In Progress" and (.content.assignees.nodes // [] | map(.login) | contains(["amarten1112"])))] | length' project_data.json)
-          MY_DONE=$(jq '[.data.user.projectV2.items.nodes[] | select(.fieldValueByName.name == "Done" and (.content.assignees.nodes // [] | map(.login) | contains(["amarten1112"])))] | length' project_data.json)
-
           echo "todo=$TODO" >> $GITHUB_OUTPUT
           echo "in_progress=$IN_PROGRESS" >> $GITHUB_OUTPUT
           echo "done=$DONE" >> $GITHUB_OUTPUT
-          echo "my_todo=$MY_TODO" >> $GITHUB_OUTPUT
-          echo "my_in_progress=$MY_IN_PROGRESS" >> $GITHUB_OUTPUT
-          echo "my_done=$MY_DONE" >> $GITHUB_OUTPUT
 
       - name: Update README
         env:
           TODO: ${{ steps.project.outputs.todo }}
           IN_PROGRESS: ${{ steps.project.outputs.in_progress }}
           DONE: ${{ steps.project.outputs.done }}
-          MY_TODO: ${{ steps.project.outputs.my_todo }}
-          MY_IN_PROGRESS: ${{ steps.project.outputs.my_in_progress }}
-          MY_DONE: ${{ steps.project.outputs.my_done }}
         run: python3 .github/scripts/update_readme.py
 
       - name: Commit changes
