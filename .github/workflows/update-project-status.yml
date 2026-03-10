@@ -53,39 +53,31 @@ jobs:
           IN_PROGRESS: ${{ steps.project.outputs.in_progress }}
           DONE: ${{ steps.project.outputs.done }}
         run: |
-          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
-          python3 - <<'PYEOF'
-          import os, re, datetime
-
-          todo = os.environ['TODO']
-          in_progress = os.environ['IN_PROGRESS']
-          done = os.environ['DONE']
-          timestamp = os.environ.get('TIMESTAMP', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'))
-
-          block = f"""<!-- PROJECT-STATUS:START -->
-| Status | Count |
-|--------|-------|
-| 🔴 Todo | {todo} |
-| 🟡 In Progress | {in_progress} |
-| 🟢 Done | {done} |
-
-*Last updated: {timestamp}*
-<!-- PROJECT-STATUS:END -->"""
-
-          with open('README.md', 'r') as f:
+          python3 - << 'PYEOF'
+          import os, re
+          from datetime import datetime, timezone
+          todo = os.environ.get('TODO', '0')
+          in_progress = os.environ.get('IN_PROGRESS', '0')
+          done = os.environ.get('DONE', '0')
+          ts = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+          row = '|--------' + '|-------|'
+          block = '\n'.join([
+              '<!-- PROJECT-STATUS:START -->',
+              '| Status | Count |',
+              row,
+              f'| \U0001f534 Todo | {todo} |',
+              f'| \U0001f7e1 In Progress | {in_progress} |',
+              f'| \U0001f7e2 Done | {done} |',
+              '',
+              f'*Last updated: {ts}*',
+              '<!-- PROJECT-STATUS:END -->'
+          ])
+          with open('README.md', 'r', encoding='utf-8') as f:
               content = f.read()
-
-          new_content = re.sub(
-              r'<!-- PROJECT-STATUS:START -->.*?<!-- PROJECT-STATUS:END -->',
-              block,
-              content,
-              flags=re.DOTALL
-          )
-
-          with open('README.md', 'w') as f:
-              f.write(new_content)
-
-          print(f"Updated: Todo={todo}, In Progress={in_progress}, Done={done}")
+          new = re.sub(r'<!-- PROJECT-STATUS:START -->.*?<!-- PROJECT-STATUS:END -->', block, content, flags=re.DOTALL)
+          with open('README.md', 'w', encoding='utf-8') as f:
+              f.write(new)
+          print(f'Done: Todo={todo}, InProgress={in_progress}, Done={done}')
           PYEOF
 
       - name: Commit changes
