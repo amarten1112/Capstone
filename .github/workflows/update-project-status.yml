@@ -47,26 +47,44 @@ jobs:
           echo "in_progress=$IN_PROGRESS" >> $GITHUB_OUTPUT
           echo "done=$DONE" >> $GITHUB_OUTPUT
 
-      - name: Update README with project board counts
+      - name: Write update script
+        run: |
+          cat > /tmp/update_readme.py << 'SCRIPT_END'
+          import os, re
+          from datetime import datetime, timezone
+          todo = os.environ.get("TODO", "0")
+          ip = os.environ.get("IN_PROGRESS", "0")
+          done = os.environ.get("DONE", "0")
+          ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+          pipe = "|"
+          dash = "--------"
+          rows = [
+              "<!-- PROJECT-STATUS:START -->",
+              pipe + " Status " + pipe + " Count " + pipe,
+              pipe + dash + pipe + "-------|",
+              pipe + " U0001f534 Todo " + pipe + " " + todo + " " + pipe,
+              pipe + " U0001f7e1 In Progress " + pipe + " " + ip + " " + pipe,
+              pipe + " U0001f7e2 Done " + pipe + " " + done + " " + pipe,
+              "",
+              "*Last updated: " + ts + "*",
+              "<!-- PROJECT-STATUS:END -->"
+          ]
+          block = "\n".join(rows)
+          with open("README.md", "r", encoding="utf-8") as f:
+              content = f.read()
+          pattern = r"<!-- PROJECT-STATUS:START -->.*?<!-- PROJECT-STATUS:END -->"
+          new = re.sub(pattern, block, content, flags=re.DOTALL)
+          with open("README.md", "w", encoding="utf-8") as f:
+              f.write(new)
+          print("Updated: Todo=" + todo + " IP=" + ip + " Done=" + done)
+          SCRIPT_END
+
+      - name: Update README
         env:
           TODO: ${{ steps.project.outputs.todo }}
           IN_PROGRESS: ${{ steps.project.outputs.in_progress }}
           DONE: ${{ steps.project.outputs.done }}
-        run: |
-          python3 -c "
-          import os, re
-          from datetime import datetime, timezone
-          todo = os.environ.get('TODO', '0')
-          ip = os.environ.get('IN_PROGRESS', '0')
-          done = os.environ.get('DONE', '0')
-          ts = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
-          sep = chr(124) + '--------' + chr(124) + '-------|'
-          block = chr(10).join(['<!-- PROJECT-STATUS:START -->', chr(124) + ' Status ' + chr(124) + ' Count ' + chr(124), sep, chr(124) + ' U0001f534 Todo ' + chr(124) + ' ' + todo + ' ' + chr(124), chr(124) + ' U0001f7e1 In Progress ' + chr(124) + ' ' + ip + ' ' + chr(124), chr(124) + ' U0001f7e2 Done ' + chr(124) + ' ' + done + ' ' + chr(124), '', '*Last updated: ' + ts + '*', '<!-- PROJECT-STATUS:END -->'])
-          with open('README.md', 'r', encoding='utf-8') as f: content = f.read()
-          new = re.sub(r'<!-- PROJECT-STATUS:START -->.*?<!-- PROJECT-STATUS:END -->', block, content, flags=re.DOTALL)
-          with open('README.md', 'w', encoding='utf-8') as f: f.write(new)
-          print('Updated: Todo=' + todo + ', InProgress=' + ip + ', Done=' + done)
-          "
+        run: python3 /tmp/update_readme.py
 
       - name: Commit changes
         run: |
