@@ -326,8 +326,6 @@ Customer: customer@example.com           / Customer1234!
 
 ---
 
-## Project Board Status
-
 <!-- PROJECT-STATUS:START -->
 ## Project Board Status
 
