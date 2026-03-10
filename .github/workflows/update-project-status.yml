@@ -1,1 +1,73 @@
- 
+name: Update Project Board Status in README
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  issues:
+    types: [opened, closed, edited, labeled, unlabeled, assigned, unassigned]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Query Project Board via GraphQL
+        id: project
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api graphql -f query='
+            query {
+              user(login: "amarten1112") {
+                projectV2(number: 3) {
+                  items(first: 100) {
+                    nodes {
+                      fieldValueByName(name: "Status") {
+                        ... on ProjectV2ItemFieldSingleSelectValue {
+                          name
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ' > project_data.json
+
+          TODO=$(jq '[.data.user.projectV2.items.nodes[] | select(.fieldValueByName.name == "Todo")] | length' project_data.json)
+          IN_PROGRESS=$(jq '[.data.user.projectV2.items.nodes[] | select(.fieldValueByName.name == "In Progress")] | length' project_data.json)
+          DONE=$(jq '[.data.user.projectV2.items.nodes[] | select(.fieldValueByName.name == "Done")] | length' project_data.json)
+
+          echo "todo=$TODO" >> $GITHUB_OUTPUT
+          echo "in_progress=$IN_PROGRESS" >> $GITHUB_OUTPUT
+          echo "done=$DONE" >> $GITHUB_OUTPUT
+
+      - name: Update README
+        run: |
+          TODO="${{ steps.project.outputs.todo }}"
+          IN_PROGRESS="${{ steps.project.outputs.in_progress }}"
+          DONE="${{ steps.project.outputs.done }}"
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+
+          STATUS_BLOCK="<!-- PROJECT-STATUS:START -->
+| Status | Count |
+|--------|-------|
+| 🔴 Todo | $TODO |
+| 🟡 In Progress | $IN_PROGRESS |
+| 🟢 Done | $DONE |
+
+*Last updated: $TIMESTAMP*
+<!-- PROJECT-STATUS:END -->"
+
+          perl -i -0pe "s|<!-- PROJECT-STATUS:START -->.*?<!-- PROJECT-STATUS:END -->|$STATUS_BLOCK|s" README.md
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git diff --quiet || (git add README.md && git commit -m "chore: update project board status [skip ci]" && git push)
