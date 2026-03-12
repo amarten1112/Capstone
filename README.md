@@ -33,6 +33,7 @@
 - [Local Development Setup](#local-development-setup)
 - [User Roles & Access](#user-roles--access)
 - [Screenshots](#screenshots)
+- [Project Board Status](#project-board-status)
 - [Development Timeline](#development-timeline)
 - [Security Implementation](#security-implementation)
 - [Known Limitations](#known-limitations)
@@ -117,18 +118,18 @@ The database uses **12 tables** normalized to **Third Normal Form (3NF)** with I
 
 ```
 ┌─────────────────── AUTHENTICATION & USERS ───────────────────┐
-│  users ──────┬──── vendors ──────── products ─── categories  │
-│              └──── customers                                  │
+│ users ──────┬──── vendors ──────── products ─── categories   │
+│             └──── customers                                   │
 └──────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────── E-COMMERCE ──────────────────────────┐
-│  customers ──┬──── cart ◄──── products                       │
-│              └──── orders ───── order_items ◄── products     │
-│                         └───── transactions                   │
+│ customers ──┬──── cart ◄──── products                        │
+│             └──── orders ───── order_items ◄── products      │
+│                    └───── transactions                        │
 └──────────────────────────────────────────────────────────────┘
 
 ┌────────────────────────── SUPPORT ───────────────────────────┐
-│  events   contacts ◄── vendors   vendor_applications         │
+│ events   contacts ◄── vendors   vendor_applications          │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -160,62 +161,62 @@ The database uses **12 tables** normalized to **Third Normal Form (3NF)** with I
 ```
 virginia-market-square/
 │
-├── index.php                   # Homepage
-├── vendors.php                 # Vendor directory
-├── vendor-detail.php           # Individual vendor page
-├── products.php                # Product catalog
-├── product-detail.php          # Product detail page
-├── events.php                  # Events calendar
-├── contact.php                 # Contact form
-├── about.php                   # About / Mission page
-├── vendor-apply.php            # Vendor application form
+├── index.php                  # Homepage
+├── vendors.php                # Vendor directory
+├── vendor-detail.php          # Individual vendor page
+├── products.php               # Product catalog
+├── product-detail.php         # Product detail page
+├── events.php                 # Events calendar
+├── contact.php                # Contact form
+├── about.php                  # About / Mission page
+├── vendor-apply.php           # Vendor application form
 │
 ├── auth/
-│   ├── login.php               # Customer login
-│   ├── register.php            # Customer registration
-│   ├── vendor-login.php        # Vendor login (invitation only)
+│   ├── login.php              # Customer login
+│   ├── register.php           # Customer registration
+│   ├── vendor-login.php       # Vendor login (invitation only)
 │   └── logout.php
 │
 ├── cart/
-│   ├── cart.php                # View cart
-│   ├── add-to-cart.php         # Add item handler
-│   └── update-cart.php         # Update/remove handler
+│   ├── cart.php               # View cart
+│   ├── add-to-cart.php        # Add item handler
+│   └── update-cart.php        # Update/remove handler
 │
 ├── checkout/
-│   ├── checkout.php            # Step 1 — Cart summary
-│   ├── checkout-shipping.php   # Step 2 — Shipping info
-│   ├── checkout-review.php     # Step 3 — Order review
-│   ├── checkout-payment.php    # Step 4 — Stripe payment
-│   └── order-confirmation.php  # Step 5 — Confirmation
+│   ├── checkout.php           # Step 1 — Cart summary
+│   ├── checkout-shipping.php  # Step 2 — Shipping info
+│   ├── checkout-review.php    # Step 3 — Order review
+│   ├── checkout-payment.php   # Step 4 — Stripe payment
+│   └── order-confirmation.php # Step 5 — Confirmation
 │
 ├── customer/
-│   ├── dashboard.php           # Customer account
-│   └── order-history.php       # Past orders
+│   ├── dashboard.php          # Customer account
+│   └── order-history.php      # Past orders
 │
 ├── vendor/
-│   ├── dashboard.php           # Vendor sales dashboard
-│   ├── products.php            # Product management
-│   └── orders.php              # Order management
+│   ├── dashboard.php          # Vendor sales dashboard
+│   ├── products.php           # Product management
+│   └── orders.php             # Order management
 │
 ├── admin/
-│   ├── dashboard.php           # Admin overview
-│   ├── vendors.php             # Vendor management
-│   ├── applications.php        # Application review
-│   ├── events.php              # Event management
-│   └── contacts.php            # Contact submissions
+│   ├── dashboard.php          # Admin overview
+│   ├── vendors.php            # Vendor management
+│   ├── applications.php       # Application review
+│   ├── events.php             # Event management
+│   └── contacts.php           # Contact submissions
 │
 ├── includes/
-│   ├── config.php              # DB connection & constants
-│   ├── header.php              # Reusable nav header
-│   ├── footer.php              # Reusable footer
-│   ├── auth-check.php          # Role-based access guard
-│   └── functions.php           # Shared helper functions
+│   ├── config.php             # DB connection & constants
+│   ├── header.php             # Reusable nav header
+│   ├── footer.php             # Reusable footer
+│   ├── auth-check.php         # Role-based access guard
+│   └── functions.php          # Shared helper functions
 │
 ├── css/
-│   └── style.css               # Custom styles + Bootstrap overrides
+│   └── style.css              # Custom styles + Bootstrap overrides
 │
 ├── js/
-│   └── script.js               # Cart AJAX, form validation, UI
+│   └── script.js              # Cart AJAX, form validation, UI
 │
 ├── docs/
 │   ├── project_charter.pdf
@@ -224,10 +225,10 @@ virginia-market-square/
 │   └── wireframes.pdf
 │
 ├── sql/
-│   ├── schema.sql              # Full CREATE TABLE statements
-│   └── sample_data.sql         # Test vendors, products, events
+│   ├── schema.sql             # Full CREATE TABLE statements
+│   └── sample_data.sql        # Test vendors, products, events
 │
-├── vendor/                     # Composer packages (Stripe SDK)
+├── vendor/                    # Composer packages (Stripe SDK)
 ├── composer.json
 └── README.md
 ```
@@ -277,13 +278,13 @@ Open `includes/config.php` and update your local credentials:
 
 ```php
 $db_host = '127.0.0.1';
-$db_user = 'root';           // your MySQL username
-$db_pass = '';               // your MySQL password
+$db_user = 'root';       // your MySQL username
+$db_pass = '';           // your MySQL password
 $db_name = 'farmers_market';
 
 // Stripe Test Keys (from https://dashboard.stripe.com/test/apikeys)
-define('STRIPE_PUBLIC_KEY',  'pk_test_YOUR_KEY_HERE');
-define('STRIPE_SECRET_KEY',  'sk_test_YOUR_KEY_HERE');
+define('STRIPE_PUBLIC_KEY', 'pk_test_YOUR_KEY_HERE');
+define('STRIPE_SECRET_KEY', 'sk_test_YOUR_KEY_HERE');
 ```
 
 > ⚠️ **Never commit real API keys.** Add `includes/config.php` to `.gitignore` if it contains secrets.
@@ -311,17 +312,49 @@ The application supports three role types, all authenticated through the `users`
 ### Test Credentials (Sample Data)
 
 ```
-Admin:    admin@virginiamarketsquare.com  /  Admin1234!
-Vendor:   vendor@rusticcedarhomestead.com /  Vendor1234!
-Customer: customer@example.com           /  Customer1234!
+Admin:    admin@virginiamarketsquare.com  / Admin1234!
+Vendor:   vendor@rusticcedarhomestead.com / Vendor1234!
+Customer: customer@example.com           / Customer1234!
 ```
 
 ### Stripe Test Cards
 
 ```
-✅ Success:  4242 4242 4242 4242  |  Any future date  |  Any 3-digit CVC
-❌ Decline:  4000 0000 0000 0002  |  Any future date  |  Any 3-digit CVC
+✅ Success: 4242 4242 4242 4242 | Any future date | Any 3-digit CVC
+❌ Decline:  4000 0000 0000 0002 | Any future date | Any 3-digit CVC
 ```
+
+---
+
+<!-- PROJECT-STATUS:START -->
+## Project Board Status
+
+### Overall Board
+
+| Status | Count |
+|--------|-------|
+| Todo | 42 |
+| In Progress | 0 |
+| Done | 12 |
+
+### Phase Progress
+
+| Phase | Status | Sub-tasks |
+|-------|--------|-----------|
+| Phase 1: Planning, Design & Database Architecture | Done | ██████████ 6/6 |
+| Phase 2: Advanced Database & Environment Setup | Done | ██████████ 4/4 |
+| Phase 3: User Authentication Systems | In progress | ░░░░░░░░░░ 0/5 |
+| Phase 4: Backend Pages & API Logic | Todo | ░░░░░░░░░░ 0/13 |
+| Phase 6: E-Commerce Payment Integration | Todo | ░░░░░░░░░░ 0/3 |
+| Phase 5: Frontend & Responsive Design | Todo | ░░░░░░░░░░ 0/11 |
+| Phase 7: JavaScript & Interactivity | Todo | ░░░░░░░░░░ 0/4 |
+| Phase 8: Content, Images & Sample Data | Todo | ░░░░░░░░░░ 0/2 |
+| Phase 9: Testing, Optimization & Deployment | Todo | ░░░░░░░░░░ 0/3 |
+
+> *Last updated automatically by GitHub Actions*
+<!-- PROJECT-STATUS:END -->
+
+> 🔄 This table is automatically updated by a [GitHub Actions workflow](.github/workflows/update-project-status.yml) that queries the [Farmers Market Square - Capstone](https://github.com/users/amarten1112/projects/3) project board via the GitHub GraphQL API.
 
 ---
 
