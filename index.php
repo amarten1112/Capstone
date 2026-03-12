@@ -118,7 +118,7 @@ include 'includes/header.php';
             echo '    <div class="card-body">';
             echo '      <h5 class="card-title">' . htmlspecialchars($vendor['vendor_name']) . '</h5>';
             echo '      <p class="card-text text-muted text-sm">';
-            echo '        <strong>Category:</strong> ' . htmlspecialchars($vendor['category']) . '<br>';
+            echo '        <strong>Category:</strong> ' . htmlspecialchars($vendor['category_text']) . '<br>';
             echo '      </p>';
             echo '      <p class="card-text text-md">';
             // Truncate description to 100 characters
