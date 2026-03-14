@@ -7,23 +7,20 @@
 #   1. You push code to the 'main' branch on GitHub
 #   2. This workflow triggers automatically on GitHub's servers
 #   3. It builds a production config.php from your GitHub Secrets
-#   4. It uploads changed files to IONOS via SFTP
+#   4. It uploads changed files to IONOS via SFTP using lftp
 #   5. Your live site updates — no manual FTP needed
 #
-# FIRST TIME SETUP CHECKLIST (do these before first push):
-#   ✅ All 8 secrets added to GitHub (Settings → Secrets → Actions)
-#   ✅ MySQL database created on IONOS and schema imported via phpMyAdmin
-#   ✅ Confirm your IONOS server-dir path (see note below)
-#
-# FILE PLACEMENT:
-#   This file must live at exactly: .github/workflows/deploy.yml
-#   in your project root (same level as index.php)
+# NOTE ON PROTOCOL:
+#   IONOS uses SFTP (SSH File Transfer Protocol) on port 22.
+#   SamKirkland/FTP-Deploy-Action does NOT support SFTP — replaced with lftp.
+#   lftp is a command-line transfer tool available on GitHub Ubuntu runners
+#   that natively speaks SFTP over SSH.
 # =============================================================================
 
 name: Deploy to IONOS
 
-# Trigger: only runs when you push to 'main'
-# Pushes to other branches (feature branches, dev, etc.) will NOT trigger this
+# Only triggers on pushes to 'main'
+# Feature branches and dev branches will NOT trigger a deploy
 on:
   push:
     branches:
@@ -32,35 +29,30 @@ on:
 jobs:
   deploy:
     name: Build and Upload to IONOS via SFTP
-    runs-on: ubuntu-latest  # GitHub spins up a fresh Linux VM for each run
+    runs-on: ubuntu-latest
 
     steps:
 
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
       # STEP 1: Check out your repository code onto the GitHub runner VM
-      # This gives the workflow access to all your project files
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
       # STEP 2: Set up PHP on the runner
-      # Needed so Composer can install the Stripe SDK (and any future packages)
-      # Skip this step if you haven't run 'composer init' yet — it won't break
-      # -------------------------------------------------------------------------
+      # Needed so Composer can install the Stripe SDK when you reach Phase 6
+      # -----------------------------------------------------------------------
       - name: Set up PHP 8.2
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
           extensions: mysqli, mbstring, curl
 
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
       # STEP 3: Install Composer dependencies if composer.json exists
-      # --no-dev        = skip development-only packages (smaller upload)
-      # --no-interaction = don't prompt for input (automated environment)
-      # The 'if' condition means this step is safely skipped if you haven't
-      # set up Composer yet — it won't cause the whole workflow to fail
-      # -------------------------------------------------------------------------
+      # Safely skipped if you haven't set up Composer yet
+      # -----------------------------------------------------------------------
       - name: Install Composer dependencies (if composer.json exists)
         run: |
           if [ -f composer.json ]; then
@@ -70,19 +62,18 @@ jobs:
             echo "No composer.json found — skipping Composer install"
           fi
 
-      # -------------------------------------------------------------------------
+      # -----------------------------------------------------------------------
       # STEP 4: Generate production config.php from GitHub Secrets
       #
-      # WHY THIS APPROACH:
-      #   config.php is in .gitignore so it never touches the repo.
-      #   Instead, this step creates it fresh on the runner VM using your
-      #   stored secrets, then SFTP uploads it to the server along with
-      #   everything else. The secrets are never visible in logs or code.
+      # config.php is in .gitignore so it never exists in the repo.
+      # This step creates it fresh on the runner VM using your stored secrets,
+      # then lftp uploads it to the server along with everything else.
+      # The actual secret values are never visible in logs or code.
       #
-      # STRIPE KEYS:
-      #   Currently commented out — uncomment in Phase 6 when you add
-      #   Stripe integration and add those two secrets to GitHub.
-      # -------------------------------------------------------------------------
+      # STRIPE KEYS: Commented out until Phase 6. When ready:
+      #   1. Uncomment the two define() lines below
+      #   2. Add STRIPE_PUBLIC_KEY and STRIPE_SECRET_KEY to GitHub Secrets
+      # -----------------------------------------------------------------------
       - name: Generate production config.php from secrets
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
@@ -90,7 +81,9 @@ jobs:
           DB_PASS: ${{ secrets.DB_PASS }}
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
-          cat > includes/config.php << PHPEOF
+          mkdir -p includes
+
+          cat > includes/config.php << 'PHPEOF'
           <?php
           /**
            * config.php — Auto-generated by GitHub Actions
@@ -98,106 +91,88 @@ jobs:
            * Update GitHub Secrets and redeploy to change values.
            */
 
-          \$db_host = '${DB_HOST}';
-          \$db_port = 3306;
-          \$db_user = '${DB_USER}';
-          \$db_pass = '${DB_PASS}';
-          \$db_name = '${DB_NAME}';
+          $db_host = 'DB_HOST_PLACEHOLDER';
+          $db_port = 3306;
+          $db_user = 'DB_USER_PLACEHOLDER';
+          $db_pass = 'DB_PASS_PLACEHOLDER';
+          $db_name = 'DB_NAME_PLACEHOLDER';
 
-          \$conn = new mysqli(\$db_host, \$db_user, \$db_pass, \$db_name, \$db_port);
+          $conn = new mysqli($db_host, $db_user, $db_pass, $db_name, $db_port);
 
-          if (\$conn->connect_error) {
-              die("Connection failed: " . \$conn->connect_error);
+          if ($conn->connect_error) {
+              die("Connection failed: " . $conn->connect_error);
           }
 
-          \$conn->set_charset("utf8");
+          $conn->set_charset("utf8");
           date_default_timezone_set('America/Chicago');
 
           // Stripe keys — uncomment in Phase 6 and add secrets to GitHub
-          // define('STRIPE_PUBLIC_KEY', '${STRIPE_PUBLIC_KEY}');
-          // define('STRIPE_SECRET_KEY', '${STRIPE_SECRET_KEY}');
+          // define('STRIPE_PUBLIC_KEY', 'STRIPE_PK_PLACEHOLDER');
+          // define('STRIPE_SECRET_KEY', 'STRIPE_SK_PLACEHOLDER');
           ?>
           PHPEOF
 
-          # Substitute actual secret values into the generated file
-          # sed -i replaces placeholder text with real values in-place
-          sed -i "s|\${DB_HOST}|${DB_HOST}|g"   includes/config.php
-          sed -i "s|\${DB_USER}|${DB_USER}|g"   includes/config.php
-          sed -i "s|\${DB_PASS}|${DB_PASS}|g"   includes/config.php
-          sed -i "s|\${DB_NAME}|${DB_NAME}|g"   includes/config.php
+          # Replace placeholders with actual secret values
+          # Using | as sed delimiter to avoid conflicts with special chars in passwords
+          sed -i "s|DB_HOST_PLACEHOLDER|${DB_HOST}|g" includes/config.php
+          sed -i "s|DB_USER_PLACEHOLDER|${DB_USER}|g" includes/config.php
+          sed -i "s|DB_PASS_PLACEHOLDER|${DB_PASS}|g" includes/config.php
+          sed -i "s|DB_NAME_PLACEHOLDER|${DB_NAME}|g" includes/config.php
 
           echo "config.php generated successfully"
 
-      # -------------------------------------------------------------------------
-      # STEP 5: Deploy to IONOS via SFTP
+      # -----------------------------------------------------------------------
+      # STEP 5: Upload files to IONOS via SFTP using lftp
       #
-      # SamKirkland/FTP-Deploy-Action is the most widely used deploy action
-      # for traditional shared hosting. Despite the name it supports SFTP.
+      # WHY lftp INSTEAD OF SamKirkland/FTP-Deploy-Action:
+      #   FTP-Deploy-Action only supports FTP/FTPS — it cannot do SSH-based
+      #   SFTP. IONOS provides SFTP on port 22. lftp natively speaks SFTP
+      #   over SSH and is available on GitHub's Ubuntu runners.
       #
-      # SMART SYNC: It tracks which files changed since last deploy and only
-      # uploads those — so after the first full upload, subsequent deploys
-      # are fast (only changed files go up).
+      # WHAT mirror --reverse DOES:
+      #   Syncs your local repo (left) → remote server (right).
+      #   --delete removes files from the server that no longer exist locally.
+      #   This keeps your live server a clean mirror of your repo.
       #
-      # server-dir NOTE:
-      #   This is the folder on your IONOS server where files land.
-      #   IONOS shared hosting is typically just /
-      #   If your site files need to go into a subfolder (e.g. /htdocs/ or
-      #   /public_html/) update this path to match.
-      #   To confirm: log into IONOS File Manager or connect via FileZilla
-      #   and see what the root directory looks like.
+      # set sftp:auto-confirm yes:
+      #   Automatically accepts the server's SSH host key fingerprint.
+      #   Without this the runner would hang waiting for interactive input.
       #
-      # EXCLUDE LIST:
-      #   Files/folders listed here are never uploaded to the server.
-      #   Capstone docs, wireframes, and SQL source files have no business
-      #   on a live web server — excluded for security and cleanliness.
-      # -------------------------------------------------------------------------
+      # server-dir (/):
+      #   Files land at the IONOS server root.
+      #   If your site needs to be in a subfolder (e.g. /htdocs/) change
+      #   the target path in the mirror command from ./ / to ./ /htdocs/
+      # -----------------------------------------------------------------------
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
+
       - name: Upload files to IONOS via SFTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server:    ${{ secrets.FTP_HOST }}
-          username:  ${{ secrets.FTP_USERNAME }}
-          password:  ${{ secrets.FTP_PASSWORD }}
-          port:      ${{ secrets.FTP_PORT }}
-          protocol:  sftp             # Use FTPS (FTP over TLS) — encrypted transfer
-          local-dir: ./               # Upload from repo root
-          server-dir: /               # IONOS root — update if your site is in a subfolder
-
-          # Files and folders to NEVER upload to the live server
-          exclude: |
-            **/.git/**
-            **/.github/**
-            **/node_modules/**
-
-            # Capstone documentation — not needed on live server
-            **/*.docx
-            **/*.pdf
-            **/CAPSTONE_*
-            **/Advanced_Project_*
-            **/Farmers_Market_Square_*
-            **/Project_Charter_*
-            **/Database_Design_*
-            **/Architecture_*
-            **/Vendor_Login_*
-            **/Entity_Relationship_*
-
-            # Wireframe screenshots — design artifacts, not web assets
-            **/Admin_Flow.*
-            **/Customer_Flow.*
-            **/Vendor_Flow.*
-            **/Phase_2_Query_*
-            **/Screenshot_*
-            **/farmers_market_ER_diagram.*
-            **/download.png
-
-            # SQL source files — schema already imported to DB manually
-            # Comment these out if you want them on the server for reference
-            **/*.sql
-
-            # Git and repo meta files
-            .gitignore
-            README.md
-            **/config.example.php
-
-            # Local dev only
-            **/*.log
-            **/*.bak
+        env:
+          SFTP_HOST: ${{ secrets.FTP_HOST }}
+          SFTP_USER: ${{ secrets.FTP_USERNAME }}
+          SFTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -u "$SFTP_USER","$SFTP_PASS" sftp://$SFTP_HOST << 'LFTPEOF'
+          set sftp:auto-confirm yes
+          set net:max-retries 3
+          set net:reconnect-interval-base 5
+          mirror --reverse --delete --verbose \
+            --exclude-glob .git/ \
+            --exclude-glob .github/ \
+            --exclude-glob node_modules/ \
+            --exclude-glob *.sql \
+            --exclude-glob *.docx \
+            --exclude-glob *.pdf \
+            --exclude-glob README.md \
+            --exclude-glob .gitignore \
+            --exclude-glob config.example.php \
+            --exclude-glob CAPSTONE_* \
+            --exclude-glob Advanced_Project_* \
+            --exclude-glob Phase_2_Query_* \
+            --exclude-glob Screenshot_* \
+            --exclude-glob *_Flow.* \
+            --exclude-glob farmers_market_ER_diagram.* \
+            --exclude-glob download.png \
+            ./ /
+          bye
+          LFTPEOF
