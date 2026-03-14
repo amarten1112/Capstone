@@ -158,7 +158,7 @@ jobs:
           username:  ${{ secrets.FTP_USERNAME }}
           password:  ${{ secrets.FTP_PASSWORD }}
           port:      ${{ secrets.FTP_PORT }}
-          protocol:  ftps             # Use FTPS (FTP over TLS) — encrypted transfer
+          protocol:  sftp             # Use FTPS (FTP over TLS) — encrypted transfer
           local-dir: ./               # Upload from repo root
           server-dir: /               # IONOS root — update if your site is in a subfolder
 
