@@ -20,7 +20,10 @@
 --   All vendors placed within 50 miles of Virginia, MN 55792
 -- =============================================================================
 
-USE `farmers_market`;
+-- Use the correct database
+-- BEFORE: USE `farmers_market`;
+-- AFTER (commented out — safe to leave in, never executes):
+-- USE `farmers_market`; -- Removed: handled by phpMyAdmin context on shared hosting
 
 -- Wrap truncates in a procedure so FK checks stay off in phpMyAdmin
 DROP PROCEDURE IF EXISTS `truncate_all_tables`;
