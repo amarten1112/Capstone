@@ -17,8 +17,9 @@
 -- =============================================================================
 
 -- Use the correct database
-USE `farmers_market`;
-
+-- BEFORE: USE `farmers_market`;
+-- AFTER (commented out — safe to leave in, never executes):
+-- USE `farmers_market`; -- Removed: handled by phpMyAdmin context on shared hosting
 -- =============================================================================
 -- DROP ALL TABLES SAFELY
 -- phpMyAdmin can reset session variables between statements, so we use a
