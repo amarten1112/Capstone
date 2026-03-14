@@ -7,20 +7,24 @@
 #   1. You push code to the 'main' branch on GitHub
 #   2. This workflow triggers automatically on GitHub's servers
 #   3. It builds a production config.php from your GitHub Secrets
-#   4. It uploads changed files to IONOS via SFTP using lftp
+#   4. It uploads changed/new files to IONOS via SFTP using lftp
 #   5. Your live site updates — no manual FTP needed
 #
-# NOTE ON PROTOCOL:
+# PROTOCOL NOTE:
 #   IONOS uses SFTP (SSH File Transfer Protocol) on port 22.
-#   SamKirkland/FTP-Deploy-Action does NOT support SFTP — replaced with lftp.
-#   lftp is a command-line transfer tool available on GitHub Ubuntu runners
-#   that natively speaks SFTP over SSH.
+#   SamKirkland/FTP-Deploy-Action does NOT support SFTP — using lftp instead.
+#
+# --delete NOTE:
+#   Intentionally removed. --delete caused permission errors trying to remove
+#   IONOS system folders (logs/, etc.) on the server root. On shared hosting
+#   you should never run --delete against / anyway — too risky.
+#   To manually remove a file from the server, use IONOS File Manager.
 # =============================================================================
 
 name: Deploy to IONOS
 
 # Only triggers on pushes to 'main'
-# Feature branches and dev branches will NOT trigger a deploy
+# Feature branches will NOT trigger a deploy
 on:
   push:
     branches:
@@ -34,7 +38,7 @@ jobs:
     steps:
 
       # -----------------------------------------------------------------------
-      # STEP 1: Check out your repository code onto the GitHub runner VM
+      # STEP 1: Check out repository code onto the GitHub runner VM
       # -----------------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -51,7 +55,7 @@ jobs:
 
       # -----------------------------------------------------------------------
       # STEP 3: Install Composer dependencies if composer.json exists
-      # Safely skipped if you haven't set up Composer yet
+      # Safely skipped with a message if you haven't set up Composer yet
       # -----------------------------------------------------------------------
       - name: Install Composer dependencies (if composer.json exists)
         run: |
@@ -65,10 +69,10 @@ jobs:
       # -----------------------------------------------------------------------
       # STEP 4: Generate production config.php from GitHub Secrets
       #
-      # config.php is in .gitignore so it never exists in the repo.
-      # This step creates it fresh on the runner VM using your stored secrets,
-      # then lftp uploads it to the server along with everything else.
-      # The actual secret values are never visible in logs or code.
+      # config.php is in .gitignore — it never exists in the repo.
+      # This step creates it on the runner VM using your stored secrets,
+      # then lftp uploads it to the server with everything else.
+      # Secret values are never visible in logs or source code.
       #
       # STRIPE KEYS: Commented out until Phase 6. When ready:
       #   1. Uncomment the two define() lines below
@@ -113,7 +117,7 @@ jobs:
           PHPEOF
 
           # Replace placeholders with actual secret values
-          # Using | as sed delimiter to avoid conflicts with special chars in passwords
+          # Using | as sed delimiter to safely handle special characters in passwords
           sed -i "s|DB_HOST_PLACEHOLDER|${DB_HOST}|g" includes/config.php
           sed -i "s|DB_USER_PLACEHOLDER|${DB_USER}|g" includes/config.php
           sed -i "s|DB_PASS_PLACEHOLDER|${DB_PASS}|g" includes/config.php
@@ -122,30 +126,32 @@ jobs:
           echo "config.php generated successfully"
 
       # -----------------------------------------------------------------------
-      # STEP 5: Upload files to IONOS via SFTP using lftp
-      #
-      # WHY lftp INSTEAD OF SamKirkland/FTP-Deploy-Action:
-      #   FTP-Deploy-Action only supports FTP/FTPS — it cannot do SSH-based
-      #   SFTP. IONOS provides SFTP on port 22. lftp natively speaks SFTP
-      #   over SSH and is available on GitHub's Ubuntu runners.
-      #
-      # WHAT mirror --reverse DOES:
-      #   Syncs your local repo (left) → remote server (right).
-      #   --delete removes files from the server that no longer exist locally.
-      #   This keeps your live server a clean mirror of your repo.
-      #
-      # set sftp:auto-confirm yes:
-      #   Automatically accepts the server's SSH host key fingerprint.
-      #   Without this the runner would hang waiting for interactive input.
-      #
-      # server-dir (/):
-      #   Files land at the IONOS server root.
-      #   If your site needs to be in a subfolder (e.g. /htdocs/) change
-      #   the target path in the mirror command from ./ / to ./ /htdocs/
+      # STEP 5: Install lftp on the runner
+      # lftp is a command-line transfer tool that natively speaks SFTP over SSH
+      # It is available on GitHub's Ubuntu runners via apt
       # -----------------------------------------------------------------------
       - name: Install lftp
         run: sudo apt-get install -y lftp
 
+      # -----------------------------------------------------------------------
+      # STEP 6: Upload files to IONOS via SFTP
+      #
+      # mirror --reverse syncs local → remote (repo → server)
+      # --ignore-time    compares files by content not timestamp
+      #                  (runner VM clock differs from server clock)
+      # --verbose        lists every file transferred in the Actions log
+      #                  so you can confirm exactly what went up
+      #
+      # NOT using --delete because:
+      #   IONOS has protected system folders (logs/ etc.) at the server root
+      #   that would cause Permission Denied errors and fail the workflow.
+      #   To remove a file from the server manually use IONOS File Manager.
+      #
+      # server root (/):
+      #   Files land at the IONOS webspace root.
+      #   If your site needs to be in a subfolder update the mirror
+      #   target from ./ / to ./ /htdocs/ or wherever index.php should live.
+      # -----------------------------------------------------------------------
       - name: Upload files to IONOS via SFTP
         env:
           SFTP_HOST: ${{ secrets.FTP_HOST }}
@@ -156,10 +162,11 @@ jobs:
           set sftp:auto-confirm yes
           set net:max-retries 3
           set net:reconnect-interval-base 5
-          mirror --reverse --delete --verbose \
+          mirror --reverse --verbose --ignore-time \
             --exclude-glob .git/ \
             --exclude-glob .github/ \
             --exclude-glob node_modules/ \
+            --exclude-glob logs/ \
             --exclude-glob *.sql \
             --exclude-glob *.docx \
             --exclude-glob *.pdf \
@@ -170,7 +177,8 @@ jobs:
             --exclude-glob Advanced_Project_* \
             --exclude-glob Phase_2_Query_* \
             --exclude-glob Screenshot_* \
-            --exclude-glob *_Flow.* \
+            --exclude-glob *_Flow.jpg \
+            --exclude-glob *_Flow.pdf \
             --exclude-glob farmers_market_ER_diagram.* \
             --exclude-glob download.png \
             ./ /
