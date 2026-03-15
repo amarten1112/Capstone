@@ -327,15 +327,7 @@ Customer: customer@example.com           / Customer1234!
 ---
 
 <!-- PROJECT-STATUS:START -->
-## Project Board Status
-
-### Overall Board
-
-| Status | Count |
-|--------|-------|
-| Todo | 41 |
-| In Progress | 0 |
-| Done | 13 |
+## Project Status
 
 ### Phase Progress
 
