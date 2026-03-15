@@ -327,7 +327,15 @@ Customer: customer@example.com           / Customer1234!
 ---
 
 <!-- PROJECT-STATUS:START -->
-## Project Status
+## Project Board Status
+
+### Overall Board
+
+| Status | Count |
+|--------|-------|
+| Todo | 40 |
+| In Progress | 0 |
+| Done | 13 |
 
 ### Phase Progress
 
@@ -341,7 +349,7 @@ Customer: customer@example.com           / Customer1234!
 | Phase 5: Frontend & Responsive Design | Todo | ░░░░░░░░░░ 0/11 |
 | Phase 7: JavaScript & Interactivity | Todo | ░░░░░░░░░░ 0/4 |
 | Phase 8: Content, Images & Sample Data | Todo | ░░░░░░░░░░ 0/2 |
-| Phase 9: Testing, Optimization & Deployment | Todo | ███░░░░░░░ 1/3 |
+| Phase 9: Testing, Optimization & Deployment | In progress | ███░░░░░░░ 1/3 |
 
 > *Last updated automatically by GitHub Actions*
 <!-- PROJECT-STATUS:END -->
