@@ -33,7 +33,7 @@
 - [Local Development Setup](#local-development-setup)
 - [User Roles & Access](#user-roles--access)
 - [Screenshots](#screenshots)
-- [Project Board Status](#project-board-status)
+- [Project Status](#project-status)
 - [Development Timeline](#development-timeline)
 - [Security Implementation](#security-implementation)
 - [Known Limitations](#known-limitations)
