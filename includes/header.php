@@ -60,9 +60,36 @@
                 <li class="nav-item">
                     <a class="nav-link" href="contact.php">Contact</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="admin/">Admin</a>
-                </li>
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <?php if (isset($_SESSION['user_type']) && $_SESSION['user_type'] === 'admin'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin/">Admin</a>
+                    </li>
+                    <?php endif; ?>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <?= htmlspecialchars($_SESSION['full_name'] ?? 'Account', ENT_QUOTES, 'UTF-8') ?>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <?php if (isset($_SESSION['user_type'])): ?>
+                                <?php if ($_SESSION['user_type'] === 'vendor'): ?>
+                                <li><a class="dropdown-item" href="vendor/dashboard.php">My Dashboard</a></li>
+                                <?php elseif ($_SESSION['user_type'] === 'customer'): ?>
+                                <li><a class="dropdown-item" href="customer/dashboard.php">My Dashboard</a></li>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="logout.php">Log Out</a></li>
+                        </ul>
+                    </li>
+                <?php else: ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.php">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-warning btn-sm text-dark px-3 ms-2" href="register.php">Register</a>
+                    </li>
+                <?php endif; ?>
             </ul>
         </div>
     </div>
@@ -71,3 +98,16 @@
 <!-- Main Content Container -->
 <main class="py-4">
     <div class="container">
+
+<?php
+// Display flash message if one is pending
+if (isset($_SESSION['flash'])) {
+    $flash = $_SESSION['flash'];
+    unset($_SESSION['flash']);
+    $cls = ($flash['type'] === 'error') ? 'danger' : htmlspecialchars($flash['type'], ENT_QUOTES, 'UTF-8');
+    echo '<div class="alert alert-' . $cls . ' alert-dismissible fade show" role="alert">';
+    echo htmlspecialchars($flash['message'], ENT_QUOTES, 'UTF-8');
+    echo '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+    echo '</div>';
+}
+?>
