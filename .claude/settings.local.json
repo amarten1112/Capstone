@@ -5,10 +5,15 @@
       "Bash(winget list:*)",
       "Bash(gh pr:*)",
       "Bash(grep -E \"\\\\.js|js$\")",
+      "Bash(git rm:*)",
       "Bash(git checkout:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git merge:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(git commit -m \"Merge feature/public-pages into main:*)"
     ]
   }
 }
