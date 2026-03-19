@@ -489,7 +489,7 @@ function require_role(string $role): void {
             redirect('admin/dashboard.php');
             break;
         case 'vendor':
-            redirect('vendor/dashboard.php');
+            redirect('vendor-portal/dashboard.php');
             break;
         case 'customer':
             redirect('customer/dashboard.php');

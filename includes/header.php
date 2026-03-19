@@ -60,9 +60,39 @@
                 <li class="nav-item">
                     <a class="nav-link" href="contact.php">Contact</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="admin/">Admin</a>
-                </li>
+                <?php if (is_logged_in()): ?>
+                    <?php if (get_current_user_type() === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="admin/dashboard.php">Admin</a>
+                        </li>
+                    <?php endif; ?>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            👤 <?= htmlspecialchars($_SESSION['full_name'] ?? 'My Account') ?>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <?php if (get_current_user_type() === 'vendor'): ?>
+                                <li><a class="dropdown-item" href="vendor-portal/dashboard.php">My Dashboard</a></li>
+                            <?php elseif (get_current_user_type() === 'customer'): ?>
+                                <li><a class="dropdown-item" href="customer/dashboard.php">My Account</a></li>
+                            <?php elseif (get_current_user_type() === 'admin'): ?>
+                                <li><a class="dropdown-item" href="admin/dashboard.php">Dashboard</a></li>
+                            <?php endif; ?>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="logout.php">Sign Out</a></li>
+                        </ul>
+                    </li>
+                <?php else: ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="login.php">Sign In</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-sm ms-2 px-3"
+                           style="background-color: var(--secondary-color); color: #fff; border-radius: 4px;"
+                           href="register.php">Register</a>
+                    </li>
+                <?php endif; ?>
             </ul>
         </div>
     </div>
