@@ -159,7 +159,7 @@ function get_current_user_type(): string|null {
  *
  * @return array|null Associative users row, or null if not logged in / not found
  */
-function get_current_user(): array|null {
+function get_auth_user(): array|null {
     if (!is_logged_in()) {
         return null;
     }
