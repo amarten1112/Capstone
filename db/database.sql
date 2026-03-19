@@ -21,6 +21,7 @@
 -- AFTER (commented out — safe to leave in, never executes):
 -- USE `farmers_market`; -- Removed: handled by phpMyAdmin context on shared hosting
 
+
 -- =============================================================================
 -- DROP ALL TABLES SAFELY
 -- phpMyAdmin can reset session variables between statements, so we use a
