@@ -3,7 +3,12 @@
     "allow": [
       "Bash(where gh:*)",
       "Bash(winget list:*)",
-      "Bash(gh pr:*)"
+      "Bash(gh pr:*)",
+      "Bash(grep -E \"\\\\.js|js$\")",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
