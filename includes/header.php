@@ -5,8 +5,8 @@
  * This file contains the HTML header, navigation menu, and opening of the main container.
  * Include this at the top of the page body on every public page.
  *
- * Requires: auth.php must be included BEFORE this file so session
- *           functions (is_logged_in, get_flash, etc.) are available.
+ * Requires: config.php (provides $base_url) and auth.php (provides session functions)
+ *           must be included BEFORE this file.
  *
  * Usage: include 'includes/header.php';
  */
@@ -30,56 +30,55 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="css/style.css" rel="stylesheet">
+    <link href="<?= $base_url ?>/css/style.css" rel="stylesheet">
 </head>
 <body>
 
 <!-- Navigation Bar -->
 <nav class="navbar navbar-expand-lg navbar-dark" aria-label="Main navigation">
     <div class="container">
-        <a class="navbar-brand" href="index.php">
+        <a class="navbar-brand" href="<?= $base_url ?>/index.php">
             🌱 Virginia Market Square
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <!-- Left-side navigation links -->
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="index.php">Home</a>
+                    <a class="nav-link" href="<?= $base_url ?>/index.php">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="vendors.php">Vendors</a>
+                    <a class="nav-link" href="<?= $base_url ?>/vendors.php">Vendors</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="products.php">Products</a>
+                    <a class="nav-link" href="<?= $base_url ?>/products.php">Products</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="events.php">Events</a>
+                    <a class="nav-link" href="<?= $base_url ?>/events.php">Events</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="about.php">About</a>
+                    <a class="nav-link" href="<?= $base_url ?>/about.php">About</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="contact.php">Contact</a>
+                    <a class="nav-link" href="<?= $base_url ?>/contact.php">Contact</a>
                 </li>
 
                 <?php if (is_logged_in()): ?>
                     <?php
                     // Determine the correct dashboard link based on user role
                     $user_type = get_current_user_type();
-                    $dashboard_url = 'index.php'; // fallback
+                    $dashboard_url = $base_url . '/index.php'; // fallback
                     $dashboard_label = 'Dashboard';
 
                     if ($user_type === 'admin') {
-                        $dashboard_url = 'admin/dashboard.php';
+                        $dashboard_url = $base_url . '/admin/dashboard.php';
                         $dashboard_label = 'Admin';
                     } elseif ($user_type === 'vendor') {
-                        $dashboard_url = 'vendor-portal/dashboard.php';
+                        $dashboard_url = $base_url . '/vendor-portal/dashboard.php';
                         $dashboard_label = 'Dashboard';
                     } elseif ($user_type === 'customer') {
-                        $dashboard_url = 'customer/dashboard.php';
+                        $dashboard_url = $base_url . '/customer/dashboard.php';
                         $dashboard_label = 'My Account';
                     }
                     ?>
@@ -102,17 +101,17 @@
                                 Signed in as <?= htmlspecialchars($_SESSION['email'] ?? '', ENT_QUOTES, 'UTF-8') ?>
                             </span></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="logout.php">Log Out</a></li>
+                            <li><a class="dropdown-item" href="<?= $base_url ?>/logout.php">Log Out</a></li>
                         </ul>
                     </li>
 
                 <?php else: ?>
                     <!-- Not logged in — show login and register links -->
                     <li class="nav-item">
-                        <a class="nav-link" href="login.php">Login</a>
+                        <a class="nav-link" href="<?= $base_url ?>/login.php">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="register.php">Register</a>
+                        <a class="nav-link" href="<?= $base_url ?>/register.php">Register</a>
                     </li>
                 <?php endif; ?>
             </ul>
@@ -124,7 +123,6 @@
 // Display flash messages (set by set_flash() in auth.php)
 $flash = get_flash();
 if ($flash):
-    // Map our 'error' type to Bootstrap's 'danger' class
     $alert_class = $flash['type'] === 'error' ? 'danger' : $flash['type'];
 ?>
 <div class="container mt-3">
