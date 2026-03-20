@@ -61,61 +61,61 @@ VALUES
 
 -- Admin
 (1,  'admin@virginiamn.gov',
-     '$2y$10$oPQ0eQ/Ad5N0Ukrk9DiSFu31jdzIxWRYmacmpCftNpcdOGu7Cqwbm',
+     '$2y$10$AyF0mPKPRsuERLvM.Q7jeege319fBuE2Hsy654fIAEjEHhG1tRy8y',
      'Market Administrator', 'admin', '2026-01-15 09:00:00', 1),
 
 -- Vendors (password: Vendor1234!)
 (2,  'hello@ironrangeroots.com',
-     '$2y$10$wX5ZyAlHXUL6fwkLOYQWXeDuhIui4zAX5GLSITNAAhgy7KSTlMnbu',
+     '$2y$10$72wVZg2ulYemA4VKzc8BHeaMzxIn.Dj9dpCGDNMA9adVocbMh0J9i',
      'Margaret Korhonen', 'vendor', '2026-01-20 10:00:00', 1),
 
 (3,  'orders@northwoodsbakery.com',
-     '$2y$10$wX5ZyAlHXUL6fwkLOYQWXeDuhIui4zAX5GLSITNAAhgy7KSTlMnbu',
+     '$2y$10$72wVZg2ulYemA4VKzc8BHeaMzxIn.Dj9dpCGDNMA9adVocbMh0J9i',
      'Dale Makinen', 'vendor', '2026-01-22 11:00:00', 1),
 
 (4,  'info@birchwoodcreamery.com',
-     '$2y$10$wX5ZyAlHXUL6fwkLOYQWXeDuhIui4zAX5GLSITNAAhgy7KSTlMnbu',
+     '$2y$10$72wVZg2ulYemA4VKzc8BHeaMzxIn.Dj9dpCGDNMA9adVocbMh0J9i',
      'Sonja Halvorsen', 'vendor', '2026-01-25 09:30:00', 1),
 
 (5,  'shop@rangecrafthouse.com',
-     '$2y$10$wX5ZyAlHXUL6fwkLOYQWXeDuhIui4zAX5GLSITNAAhgy7KSTlMnbu',
+     '$2y$10$72wVZg2ulYemA4VKzc8BHeaMzxIn.Dj9dpCGDNMA9adVocbMh0J9i',
      'Art Leppanen', 'vendor', '2026-02-01 14:00:00', 1),
 
 (6,  'fresh@taconiteacres.com',
-     '$2y$10$wX5ZyAlHXUL6fwkLOYQWXeDuhIui4zAX5GLSITNAAhgy7KSTlMnbu',
+     '$2y$10$72wVZg2ulYemA4VKzc8BHeaMzxIn.Dj9dpCGDNMA9adVocbMh0J9i',
      'Eino Virtanen', 'vendor', '2026-02-03 08:00:00', 1),
 
 (7,  'hi@mesabiherbs.com',
-     '$2y$10$wX5ZyAlHXUL6fwkLOYQWXeDuhIui4zAX5GLSITNAAhgy7KSTlMnbu',
+     '$2y$10$72wVZg2ulYemA4VKzc8BHeaMzxIn.Dj9dpCGDNMA9adVocbMh0J9i',
      'Liisa Saarinen', 'vendor', '2026-02-05 10:30:00', 1),
 
 (8,  'contact@bearcountrymeats.com',
-     '$2y$10$wX5ZyAlHXUL6fwkLOYQWXeDuhIui4zAX5GLSITNAAhgy7KSTlMnbu',
+     '$2y$10$72wVZg2ulYemA4VKzc8BHeaMzxIn.Dj9dpCGDNMA9adVocbMh0J9i',
      'Paul Ojala', 'vendor', '2026-02-08 13:00:00', 1),
 
 (9,  'studio@pineknollpottery.com',
-     '$2y$10$wX5ZyAlHXUL6fwkLOYQWXeDuhIui4zAX5GLSITNAAhgy7KSTlMnbu',
+     '$2y$10$72wVZg2ulYemA4VKzc8BHeaMzxIn.Dj9dpCGDNMA9adVocbMh0J9i',
      'Aino Myllymaki', 'vendor', '2026-02-10 09:00:00', 1),
 
 (10, 'hello@hibernatingbearapiary.com',
-     '$2y$10$wX5ZyAlHXUL6fwkLOYQWXeDuhIui4zAX5GLSITNAAhgy7KSTlMnbu',
+     '$2y$10$72wVZg2ulYemA4VKzc8BHeaMzxIn.Dj9dpCGDNMA9adVocbMh0J9i',
      'Rex Kangas', 'vendor', '2026-02-12 11:00:00', 1),
 
 -- Customers (password: Customer1234!)
 (11, 'jenna.toivonen@gmail.com',
-     '$2y$10$6inaEg12KfAjgcjRnmaYlu5vpNvgIj5f69K8gMoGhJWCXl4ETklDK',
+     '$2y$10$8NU213IaOewXuNygcEAe8ecBkFcVGsGxyXW7DZ2Kli9gRK/blMh2O',
      'Jenna Toivonen', 'customer', '2026-02-15 16:00:00', 1),
 
 (12, 'mike.anderson@hotmail.com',
-     '$2y$10$6inaEg12KfAjgcjRnmaYlu5vpNvgIj5f69K8gMoGhJWCXl4ETklDK',
+     '$2y$10$8NU213IaOewXuNygcEAe8ecBkFcVGsGxyXW7DZ2Kli9gRK/blMh2O',
      'Mike Anderson', 'customer', '2026-02-18 10:30:00', 1),
 
 (13, 'sara.hill@yahoo.com',
-     '$2y$10$6inaEg12KfAjgcjRnmaYlu5vpNvgIj5f69K8gMoGhJWCXl4ETklDK',
+     '$2y$10$8NU213IaOewXuNygcEAe8ecBkFcVGsGxyXW7DZ2Kli9gRK/blMh2O',
      'Sara Hill', 'customer', '2026-02-20 14:15:00', 1),
 
 (14, 'tom.ranta@gmail.com',
-     '$2y$10$6inaEg12KfAjgcjRnmaYlu5vpNvgIj5f69K8gMoGhJWCXl4ETklDK',
+     '$2y$10$8NU213IaOewXuNygcEAe8ecBkFcVGsGxyXW7DZ2Kli9gRK/blMh2O',
      'Tom Ranta', 'customer', '2026-03-01 09:45:00', 1);
 
 
