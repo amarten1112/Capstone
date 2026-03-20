@@ -6,7 +6,7 @@ require_once 'includes/auth.php';
 if (is_logged_in()) {
     $type = get_current_user_type();
     if ($type === 'admin')    redirect('admin/dashboard.php');
-    if ($type === 'vendor')   redirect('vendor/dashboard.php');
+    if ($type === 'vendor')   redirect('vendor-portal/dashboard.php');
     redirect('index.php');
 }
 
