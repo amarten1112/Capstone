@@ -22,6 +22,7 @@ $page_title = "Home";
 
 // Include database configuration and header
 include 'includes/config.php';
+include 'includes/auth.php';
 include 'includes/header.php';
 
 ?>
