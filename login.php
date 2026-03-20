@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $type = get_current_user_type();
             if ($type === 'admin')    redirect('admin/dashboard.php');
-            if ($type === 'vendor')   redirect('vendor/dashboard.php');
+            if ($type === 'vendor')   redirect('vendor-portal/dashboard.php');
             if ($type === 'customer') redirect('customer/dashboard.php');
             redirect('index.php');
         } else {
