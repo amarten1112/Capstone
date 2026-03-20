@@ -315,8 +315,9 @@ function logout_user(): void {
         );
     }
 
+    global $base_url;
     session_destroy();
-    redirect('login.php');
+    redirect($base_url . '/login.php');
 }
 
 
@@ -451,17 +452,19 @@ function register_user(
  *
  * @param string $redirect  Login page path (relative to project root)
  */
-function require_login(string $redirect = 'login.php'): void {
+function require_login(string $redirect = ''): void {
     if (is_logged_in()) {
         return;
     }
 
+    global $base_url;
     set_flash('warning', 'Please log in to access that page.');
 
-    $intended      = $_SERVER['REQUEST_URI'] ?? '';
-    $redirect_url  = $intended !== ''
-        ? $redirect . '?redirect=' . urlencode($intended)
-        : $redirect;
+    $intended     = $_SERVER['REQUEST_URI'] ?? '';
+    $login_url    = $base_url . '/login.php';
+    $redirect_url = $intended !== ''
+        ? $login_url . '?redirect=' . urlencode($intended)
+        : $login_url;
 
     redirect($redirect_url);
 }
@@ -480,22 +483,23 @@ function require_role(string $role): void {
         return; // Authorized
     }
 
+    global $base_url;
     set_flash('error', 'You do not have permission to access that page.');
 
     // Redirect to their own area, not login
     $type = get_current_user_type();
     switch ($type) {
         case 'admin':
-            redirect('admin/dashboard.php');
+            redirect($base_url . '/admin/dashboard.php');
             break;
         case 'vendor':
-            redirect('vendor-portal/dashboard.php');
+            redirect($base_url . '/vendor-portal/dashboard.php');
             break;
         case 'customer':
-            redirect('customer/dashboard.php');
+            redirect($base_url . '/customer/dashboard.php');
             break;
         default:
-            redirect('index.php');
+            redirect($base_url . '/index.php');
     }
 }
 
