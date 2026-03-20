@@ -110,6 +110,10 @@ jobs:
           $conn->set_charset("utf8");
           date_default_timezone_set('America/Chicago');
 
+          // Base URL — empty string means site is at the domain root (IONOS)
+          // On XAMPP local dev this is '/Capstone' — set in includes/config.php directly
+          $base_url = '';
+
           // Stripe keys — uncomment in Phase 6 and add secrets to GitHub
           // define('STRIPE_PUBLIC_KEY', 'STRIPE_PK_PLACEHOLDER');
           // define('STRIPE_SECRET_KEY', 'STRIPE_SK_PLACEHOLDER');
