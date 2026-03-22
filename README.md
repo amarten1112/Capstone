@@ -333,9 +333,9 @@ Customer: customer@example.com           / Customer1234!
 
 | Status | Count |
 |--------|-------|
-| Todo | 36 |
+| Todo | 34 |
 | In Progress | 0 |
-| Done | 22 |
+| Done | 24 |
 
 ### Phase Progress
 
@@ -344,7 +344,7 @@ Customer: customer@example.com           / Customer1234!
 | Phase 1: Planning, Design & Database Architecture | Done | ██████████ 6/6 |
 | Phase 2: Advanced Database & Environment Setup | Done | ██████████ 4/4 |
 | Phase 3: User Authentication Systems | Done | ██████████ 5/5 |
-| Phase 4: Backend Pages & API Logic | In progress | ██░░░░░░░░ 2/13 |
+| Phase 4: Backend Pages & API Logic | In progress | ███░░░░░░░ 4/13 |
 | Phase 6: E-Commerce Payment Integration | Todo | ░░░░░░░░░░ 0/3 |
 | Phase 5: Frontend & Responsive Design | Todo | ░░░░░░░░░░ 0/11 |
 | Phase 7: JavaScript & Interactivity | Todo | ░░░░░░░░░░ 0/4 |
