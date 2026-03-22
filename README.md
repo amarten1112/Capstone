@@ -33,7 +33,7 @@
 - [Local Development Setup](#local-development-setup)
 - [User Roles & Access](#user-roles--access)
 - [Screenshots](#screenshots)
-- [Project Status](#project-status)
+- [Project Phase Progress](#project-phase-progress)
 - [Development Timeline](#development-timeline)
 - [Security Implementation](#security-implementation)
 - [Known Limitations](#known-limitations)
@@ -327,17 +327,7 @@ Customer: customer@example.com           / Customer1234!
 ---
 
 <!-- PROJECT-STATUS:START -->
-## Project Board Status
-
-### Overall Board
-
-| Status | Count |
-|--------|-------|
-| Todo | 34 |
-| In Progress | 0 |
-| Done | 24 |
-
-### Phase Progress
+## Project Phase Progress
 
 | Phase | Status | Sub-tasks |
 |-------|--------|-----------|
