@@ -1,23 +1,18 @@
 name: Update Project Board Status in README
 
 on:
-  # Trigger 1: Whenever code is pushed to the main branch
   push:
     branches:
       - main
-  # Trigger 2: Whenever an issue or PR is opened/closed
   issues:
     types: [opened, closed, reopened]
   pull_request:
     types: [opened, closed, reopened]
-  # Trigger 3: Automatically twice a day (Midnight and Noon UTC)
   schedule:
     - cron: '0 0,12 * * *'
-  # Trigger 4: Allows you to manually click "Run workflow" in the Actions tab
   workflow_dispatch:
 
 env:
-  # Silences the Node.js 20 deprecation warning
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -29,19 +24,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Note: Ensure your script logic is present here if you use a specific tool
       - name: Update README Task List
         run: |
-          echo "Syncing project board status to README..."
-          # Insert your specific status-update command here if applicable
+          echo "Syncing project board status..."
+          # Note: If you have a specific python or php script that 
+          # scrapes your board, ensure it is called here.
 
       - name: Commit and push changes
         run: |
-          # Set identity so Git allows the commit
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          
           git add README.md
-          # '|| exit 0' prevents the "Exit Code 1" failure if nothing changed
-          git commit -m "docs: auto-update project status board" || exit 0
+          git commit -m "chore: update project board status [skip ci]" || exit 0
           git push
