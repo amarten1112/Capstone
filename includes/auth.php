@@ -214,6 +214,40 @@ function get_vendor_id(): int|null {
     return null;
 }
 
+/**
+ * Return the customer_id for the currently logged-in customer.
+ * Result is cached in $_SESSION['customer_id'] to avoid repeated queries.
+ *
+ * @return int|null customer_id, or null if not a customer or no customers row found
+ */
+function get_customer_id(): int|null {
+    if (get_current_user_type() !== 'customer') {
+        return null;
+    }
+
+    // Return cached value if available
+    if (isset($_SESSION['customer_id']) && $_SESSION['customer_id'] > 0) {
+        return (int) $_SESSION['customer_id'];
+    }
+
+    global $conn;
+
+    $user_id = $_SESSION['user_id'];
+    $stmt    = $conn->prepare('SELECT customer_id FROM customers WHERE user_id = ?');
+    $stmt->bind_param('i', $user_id);
+    $stmt->execute();
+    $result  = $stmt->get_result();
+    $row     = $result->fetch_assoc();
+    $stmt->close();
+
+    if ($row) {
+        $_SESSION['customer_id'] = (int) $row['customer_id'];
+        return (int) $row['customer_id'];
+    }
+
+    return null;
+}
+
 
 // =============================================================================
 // SECTION 6 — Login & Logout
@@ -280,6 +314,11 @@ function login_user(string $email, string $password): array {
     // Pre-cache vendor_id so vendor pages don't need an extra query
     if ($user['user_type'] === 'vendor') {
         get_vendor_id();
+    }
+
+    // Pre-cache customer_id so customer pages don't need an extra query
+    if ($user['user_type'] === 'customer') {
+        get_customer_id();
     }
 
     // Update last_login — failure does not block the login
