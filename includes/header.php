@@ -83,6 +83,15 @@
                     }
                     ?>
 
+                    <?php if ($user_type === 'customer'): ?>
+                        <!-- Cart link (customers only) -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= $base_url ?>/customer/cart.php">
+                                🛒 Cart
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
                     <!-- Dashboard link (role-specific) -->
                     <li class="nav-item">
                         <a class="nav-link" href="<?= $dashboard_url ?>">
