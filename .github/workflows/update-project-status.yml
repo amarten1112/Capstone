@@ -4,12 +4,8 @@ on:
   push:
     branches:
       - main
-  issues:
-    types: [opened, closed, reopened]
-  pull_request:
-    types: [opened, closed, reopened]
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * *' # Runs once a day at midnight
   workflow_dispatch:
 
 env:
@@ -24,8 +20,39 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Query Project Data
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: |
+          gh api graphql -f query='
+          query {
+            user(login: "amarten1112") {
+              projectV2(number: 3) {
+                items(first: 100) {
+                  nodes {
+                    fieldValueByName(name: "Status") {
+                      ... on ProjectV2ItemFieldSingleSelectValue {
+                        name
+                      }
+                    }
+                    content {
+                      ... on Issue {
+                        title
+                        subIssuesSummary {
+                          total
+                          completed
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          ' > project_data.json
+
       - name: Update README Task List
-       run: python3 .github/scripts/update_readme.py
+        run: python3 .github/scripts/update_readme.py
 
       - name: Commit and push changes
         run: |
