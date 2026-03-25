@@ -334,9 +334,9 @@ Customer: customer@example.com           / Customer1234!
 | Phase 1: Planning, Design & Database Architecture | Done | ██████████ 6/6 |
 | Phase 2: Advanced Database & Environment Setup | Done | ██████████ 4/4 |
 | Phase 3: User Authentication Systems | Done | ██████████ 5/5 |
-| Phase 4: Backend Pages & API Logic | In progress | ████░░░░░░ 5/13 |
-| Phase 6: E-Commerce Payment Integration | Todo | ░░░░░░░░░░ 0/3 |
-| Phase 5: Frontend & Responsive Design | Todo | ░░░░░░░░░░ 0/11 |
+| Phase 4: Backend Pages & API Logic | In progress | ██████████ 13/13 |
+| Phase 6: E-Commerce Payment Integration | Todo | ░░░░░░░░░░ 0/11 |
+| Phase 5: Frontend & Responsive Design | Todo | ░░░░░░░░░░ 0/3 |
 | Phase 7: JavaScript & Interactivity | Todo | ░░░░░░░░░░ 0/4 |
 | Phase 8: Content, Images & Sample Data | Todo | ░░░░░░░░░░ 0/2 |
 | Phase 9: Testing, Optimization & Deployment | In progress | ███░░░░░░░ 1/3 |
