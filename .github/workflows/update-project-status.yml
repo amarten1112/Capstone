@@ -25,10 +25,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Update README Task List
-        run: |
-          echo "Syncing project board status..."
-          # Note: If you have a specific python or php script that 
-          # scrapes your board, ensure it is called here.
+       run: python3 .github/scripts/update_readme.py
 
       - name: Commit and push changes
         run: |
