@@ -115,3 +115,12 @@ body {
     color: var(--primary-color);
 }
 
+/* Vendor and product card images — consistent height, crop to fill */
+.card img,
+.vendor-card img,
+.product-card img {
+    width: 100%;
+    height: 220px;          /* Adjust this value to match your card design */
+    object-fit: cover;      /* Crops to fill the space — no stretching */
+    object-position: center; /* Centers the crop point */
+}
