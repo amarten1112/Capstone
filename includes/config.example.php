@@ -58,20 +58,28 @@ date_default_timezone_set('America/Chicago'); // Central Time (Minnesota)
 
 
 // -----------------------------------------------------------------------------
-// Stripe API Keys — Added in Phase 6
+// Stripe API Keys — Phase 5
 // -----------------------------------------------------------------------------
-// These are NOT needed until you build the checkout/payment pages.
-// When you reach Phase 6, uncomment these lines in your real config.php
-// and add the matching secrets to GitHub (Settings → Secrets → Actions).
-//
 // Get your test keys from: https://dashboard.stripe.com/test/apikeys
 //   pk_test_ = publishable key (safe to use in frontend JavaScript)
 //   sk_test_ = secret key (server-side PHP ONLY — never expose in HTML or JS)
 //
-// IONOS deployment: these are injected by GitHub Actions from repo secrets.
-// You never hardcode real keys in any file that touches version control.
+// IONOS deployment: add these as GitHub Actions secrets:
+//   STRIPE_PUBLIC_KEY and STRIPE_SECRET_KEY
 // -----------------------------------------------------------------------------
 
-// define('STRIPE_PUBLIC_KEY', 'pk_test_YOUR_PUBLISHABLE_KEY_HERE');
-// define('STRIPE_SECRET_KEY', 'sk_test_YOUR_SECRET_KEY_HERE');
+define('STRIPE_PUBLIC_KEY', 'pk_test_YOUR_PUBLISHABLE_KEY_HERE');
+define('STRIPE_SECRET_KEY', 'sk_test_YOUR_SECRET_KEY_HERE');
+
+// -----------------------------------------------------------------------------
+// Composer Autoloader — loads Stripe PHP SDK
+// -----------------------------------------------------------------------------
+// Install with: composer require stripe/stripe-php
+// The vendor/ directory is in .gitignore — run composer install after cloning.
+// -----------------------------------------------------------------------------
+
+$autoload_path = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($autoload_path)) {
+    require_once $autoload_path;
+}
 ?>

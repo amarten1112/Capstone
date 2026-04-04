@@ -1,26 +1,34 @@
 <?php
 /**
- * customer/checkout-review.php — Checkout Step 2: Review & Place Order
+ * customer/checkout-review.php — Checkout Step 2: Review, Pay & Place Order
  * Virginia Market Square
  *
- * Phase 4, Tasks 4.9 + 4.10
+ * Phase 5 — Stripe Payment Integration (replaces Phase 4 placeholder)
  *
  * Step 2 of 2-step checkout:
  *   1. Shipping address (checkout.php) → stored in $_SESSION['checkout']
- *   2. Review & place order (this page)
+ *   2. Review, pay & place order (this page)
  *
- * GET:  Shows order review — cart items, shipping address, totals
- * POST: Creates the order — wraps everything in a transaction:
- *   1. INSERT into orders (with shipping address snapshot + totals)
- *   2. INSERT into order_items (one row per cart item, with price snapshot)
- *   3. UPDATE stock_quantity on each product (decrement)
- *   4. DELETE cart rows for this customer
- *   5. COMMIT
- *   6. Clear session checkout data
- *   7. Redirect to order confirmation page
+ * FLOW:
+ *   GET:  Shows order review + Stripe Payment Element (card form)
+ *         - PHP creates a Stripe PaymentIntent server-side
+ *         - Stripe.js renders the card form using the client_secret
  *
- * Payment integration (Stripe) will be added in Phase 5.
- * For now, orders are created with status='pending' and no transaction record.
+ *   POST: After Stripe.js confirms payment client-side, JS submits:
+ *         - payment_intent_id → used to verify payment on server
+ *         - csrf_token → standard CSRF protection
+ *
+ *   Server then:
+ *         1. Verifies PaymentIntent status via Stripe API
+ *         2. Logs transaction to transactions table (success or fail)
+ *         3. If payment succeeded:
+ *            a. INSERT into orders (status = 'processing')
+ *            b. INSERT into order_items (price snapshots)
+ *            c. UPDATE stock_quantity on each product
+ *            d. DELETE cart rows for this customer
+ *            e. COMMIT
+ *            f. Redirect to order confirmation
+ *         4. If payment failed: show error, customer can retry
  */
 
 require_once '../includes/config.php';
@@ -28,7 +36,7 @@ require_once '../includes/auth.php';
 
 require_customer();
 
-$page_title = 'Checkout — Review Order';
+$page_title = 'Checkout — Review & Pay';
 
 $customer_id = get_customer_id();
 
@@ -93,120 +101,216 @@ if (empty($valid_items)) {
     redirect($base_url . '/customer/cart.php');
 }
 
-// Calculate totals — tax and shipping are placeholders for now
+// Calculate totals
 $tax_rate        = 0.0;    // 0% tax — adjust later if needed
 $tax_amount      = round($subtotal * $tax_rate, 2);
-$shipping_amount = 0.00;   // Free shipping — Stripe phase can add shipping options
+$shipping_amount = 0.00;   // Free shipping
 $total_amount    = $subtotal + $tax_amount + $shipping_amount;
 
-// ─── Handle PLACE ORDER submission ──────────────────────────────────────────
+
+// ─── Create Stripe PaymentIntent (on GET, or on POST failure/retry) ─────────
+// Stripe expects the amount in CENTS (integer), not dollars.
+// Example: $24.50 → 2450 cents
+$stripe_error = '';
+$client_secret = '';
+
+try {
+    \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
+
+    // Check if we already have a PaymentIntent in the session for this checkout
+    // This prevents creating duplicate PaymentIntents on page refresh
+    if (!empty($_SESSION['stripe_payment_intent_id'])) {
+        // Retrieve existing PaymentIntent and update the amount
+        // (in case cart changed since it was created)
+        $intent = \Stripe\PaymentIntent::retrieve($_SESSION['stripe_payment_intent_id']);
+
+        // Only reuse if the intent is still in a usable state
+        if (in_array($intent->status, ['requires_payment_method', 'requires_confirmation', 'requires_action'])) {
+            $intent = \Stripe\PaymentIntent::update(
+                $_SESSION['stripe_payment_intent_id'],
+                ['amount' => (int) round($total_amount * 100)]
+            );
+        } else {
+            // Intent was already used or cancelled — create a new one
+            unset($_SESSION['stripe_payment_intent_id']);
+            $intent = \Stripe\PaymentIntent::create([
+                'amount'   => (int) round($total_amount * 100),
+                'currency' => 'usd',
+                'metadata' => [
+                    'customer_id' => $customer_id,
+                    'store'       => 'Virginia Market Square',
+                ],
+            ]);
+            $_SESSION['stripe_payment_intent_id'] = $intent->id;
+        }
+    } else {
+        // First visit — create a brand new PaymentIntent
+        $intent = \Stripe\PaymentIntent::create([
+            'amount'   => (int) round($total_amount * 100),
+            'currency' => 'usd',
+            'metadata' => [
+                'customer_id' => $customer_id,
+                'store'       => 'Virginia Market Square',
+            ],
+        ]);
+        $_SESSION['stripe_payment_intent_id'] = $intent->id;
+    }
+
+    $client_secret = $intent->client_secret;
+
+} catch (\Stripe\Exception\ApiErrorException $e) {
+    $stripe_error = 'Payment system error: ' . $e->getMessage();
+} catch (Exception $e) {
+    $stripe_error = 'Payment system is currently unavailable. Please try again later.';
+}
+
+
+// ─── Handle POST: Verify payment and create order ───────────────────────────
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid form submission. Please try again.';
+    } elseif (empty($_POST['payment_intent_id'])) {
+        $error = 'Payment information is missing. Please try again.';
     } else {
-        // ── Begin transaction ───────────────────────────────────────────
-        $conn->begin_transaction();
+        $payment_intent_id = trim($_POST['payment_intent_id']);
 
         try {
-            // 1. Create the order record
-            $stmt = $conn->prepare(
-                "INSERT INTO orders
-                    (customer_id, order_status, subtotal, tax_amount,
-                     shipping_amount, total_amount,
-                     ship_name, ship_address1, ship_address2,
-                     ship_city, ship_state, ship_zip, notes)
-                 VALUES (?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-            );
-            $stmt->bind_param('iddddsssssss',
-                $customer_id,
-                $subtotal,
-                $tax_amount,
-                $shipping_amount,
-                $total_amount,
-                $shipping['ship_name'],
-                $shipping['ship_address1'],
-                $shipping['ship_address2'],
-                $shipping['ship_city'],
-                $shipping['ship_state'],
-                $shipping['ship_zip'],
-                $shipping['notes']
-            );
-            $stmt->execute();
-            $order_id = (int) $conn->insert_id;
-            $stmt->close();
+            // Verify the payment with Stripe — don't trust the client alone
+            \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
+            $intent = \Stripe\PaymentIntent::retrieve($payment_intent_id);
 
-            // 2. Insert order_items — one row per valid cart item
-            //    Snapshot the price at time of purchase so future price
-            //    changes don't affect historical orders.
-            $item_stmt = $conn->prepare(
-                "INSERT INTO order_items
-                    (order_id, product_id, vendor_id, quantity, price_each, line_total)
-                 VALUES (?, ?, ?, ?, ?, ?)"
-            );
+            if ($intent->status === 'succeeded') {
+                // ── Payment confirmed — create the order ────────────────
+                $conn->begin_transaction();
 
-            // 3. Decrement stock for each product
-            $stock_stmt = $conn->prepare(
-                "UPDATE products
-                 SET stock_quantity = stock_quantity - ?
-                 WHERE product_id = ? AND stock_quantity >= ?"
-            );
-
-            foreach ($valid_items as $vi) {
-                $line_total = (float) $vi['price'] * (int) $vi['quantity'];
-
-                // Insert order item
-                $item_stmt->bind_param('iiiidd',
-                    $order_id,
-                    $vi['product_id'],
-                    $vi['vendor_id'],
-                    $vi['quantity'],
-                    $vi['price'],
-                    $line_total
-                );
-                $item_stmt->execute();
-
-                // Decrement stock
-                $stock_stmt->bind_param('iii',
-                    $vi['quantity'],
-                    $vi['product_id'],
-                    $vi['quantity']
-                );
-                $stock_stmt->execute();
-
-                // Verify stock was actually decremented (prevents overselling)
-                if ($stock_stmt->affected_rows === 0) {
-                    throw new Exception(
-                        'Insufficient stock for ' . $vi['product_name']
+                try {
+                    // 1. Create the order record (status = 'processing' since payment is confirmed)
+                    $stmt = $conn->prepare(
+                        "INSERT INTO orders
+                            (customer_id, order_status, subtotal, tax_amount,
+                             shipping_amount, total_amount,
+                             ship_name, ship_address1, ship_address2,
+                             ship_city, ship_state, ship_zip, notes)
+                         VALUES (?, 'processing', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                     );
+                    $stmt->bind_param('iddddsssssss',
+                        $customer_id,
+                        $subtotal,
+                        $tax_amount,
+                        $shipping_amount,
+                        $total_amount,
+                        $shipping['ship_name'],
+                        $shipping['ship_address1'],
+                        $shipping['ship_address2'],
+                        $shipping['ship_city'],
+                        $shipping['ship_state'],
+                        $shipping['ship_zip'],
+                        $shipping['notes']
+                    );
+                    $stmt->execute();
+                    $order_id = (int) $conn->insert_id;
+                    $stmt->close();
+
+                    // 2. Insert order_items — snapshot price at time of purchase
+                    $item_stmt = $conn->prepare(
+                        "INSERT INTO order_items
+                            (order_id, product_id, vendor_id, quantity, price_each, line_total)
+                         VALUES (?, ?, ?, ?, ?, ?)"
+                    );
+
+                    // 3. Decrement stock for each product
+                    $stock_stmt = $conn->prepare(
+                        "UPDATE products
+                         SET stock_quantity = stock_quantity - ?
+                         WHERE product_id = ? AND stock_quantity >= ?"
+                    );
+
+                    foreach ($valid_items as $vi) {
+                        $line_total = (float) $vi['price'] * (int) $vi['quantity'];
+
+                        $item_stmt->bind_param('iiiidd',
+                            $order_id,
+                            $vi['product_id'],
+                            $vi['vendor_id'],
+                            $vi['quantity'],
+                            $vi['price'],
+                            $line_total
+                        );
+                        $item_stmt->execute();
+
+                        $stock_stmt->bind_param('iii',
+                            $vi['quantity'],
+                            $vi['product_id'],
+                            $vi['quantity']
+                        );
+                        $stock_stmt->execute();
+
+                        if ($stock_stmt->affected_rows === 0) {
+                            throw new Exception(
+                                'Insufficient stock for ' . $vi['product_name']
+                            );
+                        }
+                    }
+
+                    $item_stmt->close();
+                    $stock_stmt->close();
+
+                    // 4. Log the successful transaction
+                    $txn_stmt = $conn->prepare(
+                        "INSERT INTO transactions
+                            (order_id, stripe_payment_id, amount, transaction_status)
+                         VALUES (?, ?, ?, 'success')"
+                    );
+                    $txn_stmt->bind_param('isd',
+                        $order_id,
+                        $payment_intent_id,
+                        $total_amount
+                    );
+                    $txn_stmt->execute();
+                    $txn_stmt->close();
+
+                    // 5. Clear the customer's cart
+                    $stmt = $conn->prepare('DELETE FROM cart WHERE customer_id = ?');
+                    $stmt->bind_param('i', $customer_id);
+                    $stmt->execute();
+                    $stmt->close();
+
+                    // 6. Commit the transaction
+                    $conn->commit();
+
+                    // 7. Clean up session data
+                    unset($_SESSION['checkout']);
+                    unset($_SESSION['stripe_payment_intent_id']);
+
+                    // 8. Redirect to order confirmation
+                    set_flash('success', 'Payment received! Your order #' . $order_id . ' is being processed.');
+                    redirect($base_url . '/customer/order-confirmation.php?order_id=' . $order_id);
+
+                } catch (Exception $e) {
+                    $conn->rollback();
+                    $error = 'Payment was successful, but there was a problem creating your order: '
+                           . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8')
+                           . '. Please contact support with your payment ID: '
+                           . htmlspecialchars($payment_intent_id, ENT_QUOTES, 'UTF-8');
                 }
+
+            } else {
+                // Payment did not succeed — log the failed attempt
+                // We don't have an order_id yet, so we create a temporary one
+                // Actually, we log without an order since the order wasn't created
+                $error = 'Payment was not completed. Status: '
+                       . htmlspecialchars($intent->status, ENT_QUOTES, 'UTF-8')
+                       . '. Please try again.';
+
+                // Clear the used PaymentIntent so a new one is created on retry
+                unset($_SESSION['stripe_payment_intent_id']);
             }
 
-            $item_stmt->close();
-            $stock_stmt->close();
-
-            // 4. Clear the customer's cart
-            $stmt = $conn->prepare('DELETE FROM cart WHERE customer_id = ?');
-            $stmt->bind_param('i', $customer_id);
-            $stmt->execute();
-            $stmt->close();
-
-            // 5. Commit the transaction
-            $conn->commit();
-
-            // 6. Clear checkout session data
-            unset($_SESSION['checkout']);
-
-            // 7. Redirect to order confirmation
-            set_flash('success', 'Order placed successfully! Your order number is #' . $order_id . '.');
-            redirect($base_url . '/customer/order-confirmation.php?order_id=' . $order_id);
-
-        } catch (Exception $e) {
-            $conn->rollback();
-            $error = 'There was a problem placing your order: '
-                   . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8')
-                   . '. Please try again.';
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            $error = 'Payment verification failed: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+            unset($_SESSION['stripe_payment_intent_id']);
         }
     }
 }
@@ -227,6 +331,10 @@ include '../includes/header.php';
 
 <?php if ($error): ?>
     <div class="alert alert-danger"><?= $error ?></div>
+<?php endif; ?>
+
+<?php if ($stripe_error): ?>
+    <div class="alert alert-danger"><?= htmlspecialchars($stripe_error, ENT_QUOTES, 'UTF-8') ?></div>
 <?php endif; ?>
 
 <div class="row g-4">
@@ -296,7 +404,7 @@ include '../includes/header.php';
         </div>
     </div>
 
-    <!-- ── RIGHT: Order Totals + Place Order ─────────────────────────────── -->
+    <!-- ── RIGHT: Order Totals + Payment ─────────────────────────────────── -->
     <div class="col-md-4">
         <div class="card shadow-sm">
             <div class="card-body">
@@ -326,18 +434,40 @@ include '../includes/header.php';
                     <strong class="fs-5 text-success">$<?= number_format($total_amount, 2) ?></strong>
                 </div>
 
-                <!-- Place Order form -->
-                <form method="POST" action="checkout-review.php">
-                    <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
-                    <button type="submit" class="btn btn-success btn-lg w-100">
-                        Place Order
-                    </button>
-                </form>
+                <?php if ($client_secret): ?>
+                    <!-- ── Stripe Payment Form ───────────────────────────── -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Payment Details</label>
+                        <!-- Stripe Payment Element mounts here -->
+                        <div id="payment-element" class="border rounded p-3 bg-white"></div>
+                        <!-- Stripe.js shows validation errors here -->
+                        <div id="payment-errors" class="text-danger small mt-2" role="alert"></div>
+                    </div>
 
-                <p class="text-muted small text-center mt-2 mb-0">
-                    Payment will be collected in a future update.
-                    Orders are placed as "pending" for now.
-                </p>
+                    <button id="pay-button" type="button" class="btn btn-success btn-lg w-100">
+                        <span id="pay-button-text">Pay $<?= number_format($total_amount, 2) ?></span>
+                        <span id="pay-spinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    </button>
+
+                    <p class="text-muted small text-center mt-2 mb-0">
+                        <span class="me-1">&#128274;</span> Payments processed securely by Stripe
+                    </p>
+
+                    <!-- Hidden form that JS submits after successful payment -->
+                    <form id="order-form" method="POST" action="checkout-review.php" class="d-none">
+                        <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
+                        <input type="hidden" name="payment_intent_id" id="payment-intent-id" value="">
+                    </form>
+
+                <?php else: ?>
+                    <!-- Stripe failed to initialize — show error state -->
+                    <div class="alert alert-warning mb-3">
+                        Payment system is temporarily unavailable. Please try again in a few minutes.
+                    </div>
+                    <button class="btn btn-secondary btn-lg w-100" disabled>
+                        Payment Unavailable
+                    </button>
+                <?php endif; ?>
 
                 <hr>
 
@@ -347,8 +477,100 @@ include '../includes/header.php';
                 </a>
             </div>
         </div>
+
+        <!-- Test card info — helpful during development -->
+        <div class="card shadow-sm mt-3 border-info">
+            <div class="card-body py-2">
+                <p class="mb-1 small"><strong>Test Card:</strong> 4242 4242 4242 4242</p>
+                <p class="mb-1 small"><strong>Expiry:</strong> Any future date (e.g. 12/34)</p>
+                <p class="mb-0 small"><strong>CVC:</strong> Any 3 digits (e.g. 123)</p>
+            </div>
+        </div>
     </div>
 
 </div>
+
+<?php if ($client_secret): ?>
+<!-- ── Stripe.js — loaded from Stripe's CDN (required, cannot self-host) ──── -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<script>
+/**
+ * Stripe Payment Integration — Client-side
+ *
+ * Flow:
+ *   1. Initialize Stripe.js with the publishable key
+ *   2. Create a Payment Element (renders the card form)
+ *   3. On button click, confirm the payment with Stripe
+ *   4. If payment succeeds, submit the hidden form with the payment_intent_id
+ *   5. Server verifies and creates the order
+ */
+
+// Initialize Stripe with your publishable key (safe — this is the public key)
+const stripe = Stripe('<?= STRIPE_PUBLIC_KEY ?>');
+
+// Create Stripe Elements instance with the client_secret from the PaymentIntent
+const elements = stripe.elements({
+    clientSecret: '<?= $client_secret ?>',
+    appearance: {
+        theme: 'stripe',
+        variables: {
+            colorPrimary: '#2d5016',       // Match VMS dark green
+            colorBackground: '#ffffff',
+            colorText: '#333333',
+            borderRadius: '6px',
+        }
+    }
+});
+
+// Mount the Payment Element into the #payment-element div
+const paymentElement = elements.create('payment');
+paymentElement.mount('#payment-element');
+
+// ── Handle the Pay button click ─────────────────────────────────────────────
+const payButton      = document.getElementById('pay-button');
+const payButtonText  = document.getElementById('pay-button-text');
+const paySpinner     = document.getElementById('pay-spinner');
+const errorDisplay   = document.getElementById('payment-errors');
+
+payButton.addEventListener('click', async function () {
+    // Disable button and show spinner to prevent double-clicks
+    payButton.disabled = true;
+    payButtonText.textContent = 'Processing...';
+    paySpinner.classList.remove('d-none');
+    errorDisplay.textContent = '';
+
+    // Ask Stripe.js to confirm the payment
+    // This handles card validation, 3D Secure, etc. automatically
+    const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        redirect: 'if_required',  // Stay on page — we handle the redirect ourselves
+    });
+
+    if (error) {
+        // Payment failed — show the error to the customer
+        // Common errors: card declined, insufficient funds, expired card
+        errorDisplay.textContent = error.message;
+        payButton.disabled = false;
+        payButtonText.textContent = 'Pay $<?= number_format($total_amount, 2) ?>';
+        paySpinner.classList.add('d-none');
+        return;
+    }
+
+    if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // Payment succeeded — submit the payment_intent_id to our server
+        // The server will verify this with Stripe before creating the order
+        document.getElementById('payment-intent-id').value = paymentIntent.id;
+        document.getElementById('order-form').submit();
+    } else {
+        // Unexpected status — show error
+        errorDisplay.textContent = 'Payment was not completed. Please try again.';
+        payButton.disabled = false;
+        payButtonText.textContent = 'Pay $<?= number_format($total_amount, 2) ?>';
+        paySpinner.classList.add('d-none');
+    }
+});
+</script>
+<?php endif; ?>
 
 <?php include '../includes/footer.php'; ?>

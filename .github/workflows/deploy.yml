@@ -45,7 +45,7 @@ jobs:
 
       # -----------------------------------------------------------------------
       # STEP 2: Set up PHP on the runner
-      # Needed so Composer can install the Stripe SDK when you reach Phase 6
+      # Needed so Composer can install the Stripe SDK
       # -----------------------------------------------------------------------
       - name: Set up PHP 8.2
         uses: shivammathur/setup-php@v2
@@ -74,9 +74,8 @@ jobs:
       # then lftp uploads it to the server with everything else.
       # Secret values are never visible in logs or source code.
       #
-      # STRIPE KEYS: Commented out until Phase 6. When ready:
-      #   1. Uncomment the two define() lines below
-      #   2. Add STRIPE_PUBLIC_KEY and STRIPE_SECRET_KEY to GitHub Secrets
+      # Phase 5 UPDATE: Stripe keys are now active.
+      #   Secrets STRIPE_PUBLIC_KEY and STRIPE_SECRET_KEY must exist in GitHub.
       # -----------------------------------------------------------------------
       - name: Generate production config.php from secrets
         env:
@@ -84,6 +83,8 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
           DB_NAME: ${{ secrets.DB_NAME }}
+          STRIPE_PUBLIC_KEY: ${{ secrets.STRIPE_PUBLIC_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
         run: |
           mkdir -p includes
 
@@ -111,12 +112,17 @@ jobs:
           date_default_timezone_set('America/Chicago');
 
           // Base URL — empty string means site is at the domain root (IONOS)
-          // On XAMPP local dev this is '/Capstone' — set in includes/config.php directly
           $base_url = '';
 
-          // Stripe keys — uncomment in Phase 6 and add secrets to GitHub
-          // define('STRIPE_PUBLIC_KEY', 'STRIPE_PK_PLACEHOLDER');
-          // define('STRIPE_SECRET_KEY', 'STRIPE_SK_PLACEHOLDER');
+          // Stripe API Keys (Phase 5)
+          define('STRIPE_PUBLIC_KEY', 'STRIPE_PK_PLACEHOLDER');
+          define('STRIPE_SECRET_KEY', 'STRIPE_SK_PLACEHOLDER');
+
+          // Composer Autoloader — loads Stripe PHP SDK
+          $autoload_path = __DIR__ . '/../vendor/autoload.php';
+          if (file_exists($autoload_path)) {
+              require_once $autoload_path;
+          }
           ?>
           PHPEOF
 
@@ -126,8 +132,10 @@ jobs:
           sed -i "s|DB_USER_PLACEHOLDER|${DB_USER}|g" includes/config.php
           sed -i "s|DB_PASS_PLACEHOLDER|${DB_PASS}|g" includes/config.php
           sed -i "s|DB_NAME_PLACEHOLDER|${DB_NAME}|g" includes/config.php
+          sed -i "s|STRIPE_PK_PLACEHOLDER|${STRIPE_PUBLIC_KEY}|g" includes/config.php
+          sed -i "s|STRIPE_SK_PLACEHOLDER|${STRIPE_SECRET_KEY}|g" includes/config.php
 
-          echo "config.php generated successfully"
+          echo "config.php generated successfully (with Stripe keys)"
 
       # -----------------------------------------------------------------------
       # STEP 5: Install lftp on the runner
