@@ -133,7 +133,7 @@ VALUES
  'hello@ironrangeroots.com', '218-555-0101',
  'A fourth-generation family farm outside of Biwabik, growing certified organic vegetables and fruit since 1982. We believe in honest food grown the old-fashioned way — no shortcuts, no chemicals, just good Minnesota soil and hard work.',
  'Certified organic vegetables and fruit from a fourth-generation Biwabik family farm.',
- 'assets/images/vendors/iron-range-roots.jpg',
+ 'assets/images/vendors/iron-range-roots.webp',
  'https://ironrangeroots.com',
  'Produce', 12.4, 1, 1, '2026-01-20 10:00:00'),
 
@@ -141,7 +141,7 @@ VALUES
  'orders@northwoodsbakery.com', '218-555-0202',
  'Traditional Finnish-American breads and pastries baked fresh every Wednesday and Thursday morning in Eveleth. Our recipes trace back to the Makinen family emigrating from Oulu, Finland in 1910. Try our cardamom pulla.',
  'Finnish-American breads and pastries baked fresh in Eveleth. Est. 1910.',
- 'assets/images/vendors/northwoods-bakery.jpg',
+ 'assets/images/vendors/northwoods-bakery.webp',
  NULL,
  'Baked Goods', 8.2, 1, 1, '2026-01-22 11:00:00'),
 
@@ -149,7 +149,7 @@ VALUES
  'info@birchwoodcreamery.com', '218-555-0303',
  'Small-batch artisan cheeses and dairy products from our herd of 22 Jersey cows on our farm near Aurora. All milk is non-homogenized and our animals are pasture-raised year-round.',
  'Artisan cheeses and dairy from pasture-raised Jersey cows near Aurora.',
- 'assets/images/vendors/birchwood-creamery.jpg',
+ 'assets/images/vendors/birchwood-creamery.webp',
  'https://birchwoodcreamery.com',
  'Dairy & Eggs', 18.7, 1, 1, '2026-01-25 09:30:00'),
 
@@ -157,7 +157,7 @@ VALUES
  'shop@rangecrafthouse.com', '218-555-0404',
  'Handmade woodwork, iron art, and home goods crafted in a workshop in Gilbert, MN. Art Leppanen spent 20 years working the Iron Range mines before turning to craftsmanship full-time.',
  'Handmade woodwork and iron art from a Gilbert craftsman with Iron Range roots.',
- 'assets/images/vendors/range-craft-house.jpg',
+ 'assets/images/vendors/range-craft-house.webp',
  NULL,
  'Handmade Crafts', 6.1, 1, 1, '2026-02-01 14:00:00'),
 
@@ -165,7 +165,7 @@ VALUES
  'fresh@taconiteacres.com', '218-555-0505',
  'Pastured pork, free-range eggs, and seasonal vegetables grown on 80 acres just outside Mountain Iron. We rotate our pigs through the woodlands and raise heritage breed Berkshire and Tamworth crosses for exceptional flavor.',
  'Pastured pork, free-range eggs, and vegetables from 80 acres near Mountain Iron.',
- 'assets/images/vendors/taconite-acres.jpg',
+ 'assets/images/vendors/taconite-acres.webp',
  'https://taconiteacres.com',
  'Meat & Poultry', 9.3, 1, 1, '2026-02-03 08:00:00'),
 
@@ -173,7 +173,7 @@ VALUES
  'hi@mesabiherbs.com', '218-555-0606',
  'Certified organic medicinal herbs, tinctures, teas, and herbal skincare products grown and handcrafted in Hibbing. Liisa has practiced herbalism for 18 years.',
  'Organic medicinal herbs, teas, and herbal skincare grown and crafted in Hibbing.',
- 'assets/images/vendors/mesabi-herbs.jpg',
+ 'assets/images/vendors/mesabi-herbs.webp',
  'https://mesabiherbs.com',
  'Plants & Herbs', 29.5, 1, 1, '2026-02-05 10:30:00'),
 
@@ -181,7 +181,7 @@ VALUES
  'contact@bearcountrymeats.com', '218-555-0707',
  'Grass-fed beef and pasture-raised lamb from the Ojala family ranch in Cook, MN. All animals are born and raised on our land, dry-aged on site, and processed at a USDA-inspected facility.',
  'Grass-fed beef and pasture-raised lamb from a family ranch in Cook, MN.',
- 'assets/images/vendors/bear-country-meats.jpg',
+ 'assets/images/vendors/bear-country-meats.webp',
  NULL,
  'Meat & Poultry', 42.0, 1, 1, '2026-02-08 13:00:00'),
 
@@ -189,7 +189,7 @@ VALUES
  'studio@pineknollpottery.com', '218-555-0808',
  'Wheel-thrown and hand-built stoneware pottery fired in a wood-burning kiln in Chisholm. Aino Myllymaki studied ceramics at Duluth and has been making functional and sculptural ware on the Range for over a decade.',
  'Wheel-thrown stoneware pottery fired in a wood-burning kiln in Chisholm.',
- 'assets/images/vendors/pine-knoll-pottery.jpg',
+ 'assets/images/vendors/pine-knoll-pottery.webp',
  'https://pineknollpottery.com',
  'Handmade Crafts', 22.1, 1, 1, '2026-02-10 09:00:00'),
 
@@ -197,7 +197,7 @@ VALUES
  'hello@hibernatingbearapiary.com', '218-555-0909',
  'Raw wildflower and clover honey, beeswax candles, and lip balms from 40 hives managed in the forests and meadows around Orr, MN. Rex has kept bees since 2009 and never heat-processes his honey.',
  'Raw wildflower honey, beeswax candles, and lip balms from 40 hives near Orr.',
- 'assets/images/vendors/hibernating-bear-apiary.jpg',
+ 'assets/images/vendors/hibernating-bear-apiary.webp',
  NULL,
  'Honey & Preserves', 47.3, 1, 0, '2026-02-12 11:00:00');
 
