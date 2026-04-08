@@ -30,7 +30,7 @@ include 'includes/header.php';
 <!-- HERO BANNER SECTION -->
 <div class="hero-banner mb-5">
     <h1 class="display-4 fw-bold mb-3">🌱 We Believe in Local!</h1>
-    <p class="lead mb-4">
+    <p class="lead fw-semibold mb-4">
         Supporting local farmers, makers, and producers within 50 miles of Virginia, Minnesota.
     </p>
     <p class="mb-4">
