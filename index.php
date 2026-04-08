@@ -251,7 +251,7 @@ include 'includes/header.php';
             <a href="about.php" class="btn btn-success mt-3">Learn More About Us</a>
         </div>
         <div class="col-md-6">
-            <img src="images/farmers-market-hero.jpg" alt="Farmers Market" class="img-fluid rounded">
+            <img src="assets/images/hero/farmers-market-hero.webp" alt="Farmers Market" class="img-fluid rounded">
         </div>
     </div>
 </section>
