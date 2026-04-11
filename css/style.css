@@ -1,15 +1,88 @@
-/* Global theme variables */
+/* ==========================================================================
+   Virginia Market Square — Master Stylesheet (Phase 6)
+   ==========================================================================
+   Design tokens + Bootstrap 5 overrides + page-specific styles.
+   
+   COLOR SYSTEM:
+     --primary-color:   #2d5016  (dark green)  — navbar, headings, deep accents
+     --secondary-color: #6ba547  (light green)  — buttons, badges, active states
+     --accent-color:    #d4a574  (earth tone)   — card borders, hover highlights
+     --bg-warm:         #f9f7f4  (warm off-white) — page background
+     --bg-section:      #f0f4e8  (pale green)     — section highlights
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   1. GLOBAL TOKENS & RESETS
+   -------------------------------------------------------------------------- */
+
 :root {
-    --primary-color: #2d5016;  /* Dark Green */
-    --secondary-color: #6ba547; /* Light Green */
-    --accent-color: #d4a574;   /* Earth tone */
+    --primary-color: #2d5016;
+    --secondary-color: #6ba547;
+    --accent-color: #d4a574;
+    --bg-warm: #f9f7f4;
+    --bg-section: #f0f4e8;
+
+    /* Derived shades — used for hover states, borders, soft backgrounds */
+    --primary-dark: #1e3a0e;
+    --primary-light: #3d6b1e;
+    --secondary-dark: #579338;
+    --secondary-light: #82c05e;
+    --accent-light: #e4c9a8;
+    --accent-dark: #b8894e;
+
+    /* Text hierarchy */
+    --text-body: #333333;
+    --text-muted: #6c757d;
+    --text-heading: #2d5016;
 }
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
-    background-color: #f9f7f4;
+    color: var(--text-body);
+    background-color: var(--bg-warm);
 }
+
+
+/* --------------------------------------------------------------------------
+   2. TYPOGRAPHY
+   -------------------------------------------------------------------------- */
+
+/* Page-level headings — consistent dark green */
+h1, h2, h3 {
+    color: var(--text-heading);
+}
+
+/* In-card headings stay dark (not green) so they work on white card backgrounds */
+.card h5,
+.card h6,
+.card .card-title {
+    color: var(--text-body);
+}
+
+/* Links — use secondary green instead of Bootstrap's default blue */
+a {
+    color: var(--secondary-color);
+}
+
+a:hover {
+    color: var(--primary-color);
+}
+
+/* Exceptions: keep nav links, button links, and badge links from inheriting */
+.nav-link,
+.btn,
+.badge,
+.dropdown-item,
+.breadcrumb-item a,
+.list-group-item-action {
+    /* These components manage their own link colors */
+}
+
+
+/* --------------------------------------------------------------------------
+   3. NAVBAR
+   -------------------------------------------------------------------------- */
 
 .navbar {
     background-color: var(--primary-color);
@@ -23,33 +96,126 @@ body {
 }
 
 .nav-link {
-    color: rgba(255, 255, 255, 0.8) !important;
-    margin: 0 0.5rem;
-    transition: color 0.3s;
+    color: rgba(255, 255, 255, 0.85) !important;
+    margin: 0 0.25rem;
+    transition: color 0.3s ease;
+    font-weight: 500;
 }
 
-.nav-link:hover {
+.nav-link:hover,
+.nav-link:focus {
     color: var(--accent-color) !important;
 }
 
-/* Homepage specific styles */
+/* Active nav link — slightly brighter so the current page stands out */
+.nav-link.active,
+.navbar .nav-link.active {
+    color: #ffffff !important;
+}
 
-.hero-banner {
-    background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
-                url('../assets/images/hero/farmers-market-hero.webp') center/cover no-repeat;
+/* Dropdown menu inside navbar */
+.navbar .dropdown-menu {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    border-radius: 0.5rem;
+}
+
+.navbar .dropdown-item:hover {
+    background-color: var(--bg-section);
+    color: var(--primary-color);
+}
+
+
+/* --------------------------------------------------------------------------
+   4. BUTTONS — Bootstrap overrides using brand colors
+   --------------------------------------------------------------------------
+   Maps Bootstrap's btn-success → our secondary green,
+   so every existing btn-success on the site now matches the brand.           */
+
+/* Primary action button — secondary green */
+.btn-success {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
     color: #ffffff;
-    padding: 80px 20px;
-    border-radius: 8px;
-    text-align: center;
 }
 
-.section-highlight {
-    background-color: #f0f4e8;
-    border-radius: 8px;
-    border-left: 4px solid var(--primary-color);
-    padding: 1.5rem;
+.btn-success:hover,
+.btn-success:focus {
+    background-color: var(--secondary-dark);
+    border-color: var(--secondary-dark);
+    color: #ffffff;
 }
 
+.btn-success:active,
+.btn-success.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Outline success button */
+.btn-outline-success {
+    color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-outline-success:hover,
+.btn-outline-success:focus {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: #ffffff;
+}
+
+/* Warning button — keep Bootstrap's amber, it pairs well with earth tones */
+/* No override needed — bg-warning already looks good with the palette.    */
+
+/* Outline secondary — soften the border for a lighter feel */
+.btn-outline-secondary {
+    border-color: #c5c5c5;
+    color: var(--text-muted);
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f0f0f0;
+    border-color: #aaa;
+    color: var(--text-body);
+}
+
+
+/* --------------------------------------------------------------------------
+   5. FORM CONTROLS — Green focus ring instead of Bootstrap blue
+   -------------------------------------------------------------------------- */
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.2rem rgba(107, 165, 71, 0.25);
+}
+
+/* Labels — slightly heavier for readability */
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   6. CARDS
+   -------------------------------------------------------------------------- */
+
+.card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.5rem;
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+/* Subtle lift on hover — only for cards that act as links/clickable items */
+.vendor-card:hover,
+a .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Card accent borders */
 .card-top-accent-green {
     border-top: 4px solid var(--secondary-color);
 }
@@ -62,47 +228,430 @@ body {
     border-left: 4px solid var(--accent-color);
 }
 
+/* Card footer — transparent with a subtle divider */
+.card-footer.bg-transparent {
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+
+/* --------------------------------------------------------------------------
+   7. BADGES — Brand-aligned overrides
+   -------------------------------------------------------------------------- */
+
+/* Green badge for categories, vendor status */
+.badge.bg-success {
+    background-color: var(--secondary-color) !important;
+}
+
+/* Featured product badge — keep warm amber */
+/* .badge.bg-warning uses Bootstrap default — already works well */
+
+/* Order status badges — keep Bootstrap defaults, they're color-coded by
+   purpose (warning=pending, info=processing, etc.) and shouldn't change */
+
+
+/* --------------------------------------------------------------------------
+   8. ALERTS — Softer backgrounds, brand-aligned borders
+   -------------------------------------------------------------------------- */
+
+.alert-success {
+    background-color: #edf5e6;
+    border-color: var(--secondary-color);
+    color: var(--primary-color);
+}
+
+.alert-info {
+    background-color: #e8f0f4;
+    border-color: #8bbbd0;
+    color: #1a5770;
+}
+
+
+/* --------------------------------------------------------------------------
+   9. TABLES
+   -------------------------------------------------------------------------- */
+
+/* Table header row — light green tint */
+.table thead th {
+    background-color: var(--bg-section);
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+/* Hover rows — warm tint instead of Bootstrap's cool gray */
+.table-hover tbody tr:hover {
+    background-color: rgba(107, 165, 71, 0.06);
+}
+
+
+/* --------------------------------------------------------------------------
+   10. BREADCRUMBS
+   -------------------------------------------------------------------------- */
+
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.breadcrumb-item a {
+    color: var(--secondary-color);
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+    color: var(--text-muted);
+}
+
+/* Custom separator color */
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--accent-color);
+}
+
+
+/* --------------------------------------------------------------------------
+   11. NAV PILLS — Register page tabs, filter groups
+   -------------------------------------------------------------------------- */
+
+.nav-pills .nav-link {
+    color: var(--secondary-color) !important;
+    font-weight: 500;
+    border-radius: 2rem;
+}
+
+.nav-pills .nav-link:hover {
+    background-color: var(--bg-section);
+    color: var(--primary-color) !important;
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--secondary-color) !important;
+    color: #ffffff !important;
+}
+
+/* Button group filters — events page, etc. */
+.btn-group .btn-success {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-group .btn-outline-success {
+    color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-group .btn-outline-success:hover {
+    background-color: var(--secondary-color);
+    color: #ffffff;
+}
+
+
+/* --------------------------------------------------------------------------
+   12. PAGINATION — Products page
+   -------------------------------------------------------------------------- */
+
+.pagination .page-link {
+    color: var(--secondary-color);
+    border-color: #dee2e6;
+}
+
+.pagination .page-link:hover {
+    color: var(--primary-color);
+    background-color: var(--bg-section);
+    border-color: var(--secondary-color);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: #ffffff;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: var(--text-muted);
+}
+
+
+/* --------------------------------------------------------------------------
+   12b. INPUT GROUPS — Price range filters
+   -------------------------------------------------------------------------- */
+
+.input-group-text {
+    background-color: var(--bg-section);
+    border-color: #dee2e6;
+    color: var(--text-muted);
+}
+
+
+/* --------------------------------------------------------------------------
+   13. FOOTER
+   -------------------------------------------------------------------------- */
+
+footer {
+    background-color: var(--primary-dark) !important;
+}
+
+footer h5 {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+footer a {
+    color: var(--accent-color) !important;
+    transition: color 0.2s ease;
+}
+
+footer a:hover {
+    color: var(--accent-light) !important;
+}
+
+footer hr {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+
+/* --------------------------------------------------------------------------
+   14. HERO BANNER
+   -------------------------------------------------------------------------- */
+
+.hero-banner {
+    background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+                url('../assets/images/hero/farmers-market-hero.webp') center/cover no-repeat;
+    color: #ffffff;
+    padding: 80px 20px;
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.hero-banner h1 {
+    color: #ffffff;
+}
+
+
+/* --------------------------------------------------------------------------
+   15. SECTION PATTERNS
+   -------------------------------------------------------------------------- */
+
+.section-highlight {
+    background-color: var(--bg-section);
+    border-radius: 0.5rem;
+    border-left: 4px solid var(--primary-color);
+    padding: 1.5rem;
+}
+
 .info-card {
     background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 1.25rem;
+    border-radius: 0.5rem;
 }
 
 .about-section {
     background-color: #ffffff;
-    padding: 40px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .cta-section {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: #ffffff;
     padding: 60px 20px;
-    border-radius: 8px;
+    border-radius: 0.5rem;
     text-align: center;
 }
 
-/* Vendor and events cards */
+.cta-section h2 {
+    color: #ffffff;
+}
+
+
+/* --------------------------------------------------------------------------
+   16. VENDOR CARDS
+   -------------------------------------------------------------------------- */
 
 .vendor-card {
-    transition: transform 0.3s;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .vendor-card-image {
-    height: 200px;
+    height: 220px;
     object-fit: cover;
 }
 
 .vendor-card-image-placeholder {
-    height: 200px;
-    background-color: #e9ecef;
+    height: 220px;
+    background-color: var(--bg-section);
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--text-muted);
+    font-style: italic;
 }
 
-/* Typography helpers */
+
+/* --------------------------------------------------------------------------
+   17. PRODUCT CARDS & PRODUCT DETAIL
+   -------------------------------------------------------------------------- */
+
+/* Consistent card image heights across all card grids */
+.card img.card-img-top,
+.vendor-card img.card-img-top,
+.product-card img.card-img-top {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* Product detail — main image */
+.product-detail-img {
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+
+/* Related product thumbnails */
+.product-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 0.375rem;
+}
+
+/* Price display */
+.price-display {
+    color: var(--secondary-color);
+    font-weight: 700;
+}
+
+/* In-stock / out-of-stock labels */
+.stock-in {
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+.stock-out {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+
+/* --------------------------------------------------------------------------
+   18. CHECKOUT PROGRESS INDICATOR
+   -------------------------------------------------------------------------- */
+
+.checkout-progress {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.checkout-step {
+    padding: 0.5rem 1.25rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.checkout-step-active {
+    background-color: var(--secondary-color);
+    color: #ffffff;
+}
+
+.checkout-step-inactive {
+    background-color: #e9ecef;
+    color: var(--text-muted);
+}
+
+.checkout-step-done {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+
+/* --------------------------------------------------------------------------
+   19. STRIPE PAYMENT — checkout-review.php
+   -------------------------------------------------------------------------- */
+
+/* Container for the Stripe Payment Element */
+#payment-element {
+    min-height: 60px;
+    transition: border-color 0.2s ease;
+}
+
+#payment-element:focus-within {
+    border-color: var(--secondary-color) !important;
+    box-shadow: 0 0 0 0.2rem rgba(107, 165, 71, 0.15);
+}
+
+/* Error message below payment element */
+#payment-errors:not(:empty) {
+    padding: 0.5rem;
+    background-color: #fdf0f0;
+    border-radius: 0.25rem;
+}
+
+/* Processing spinner on pay button */
+#pay-button .spinner-border {
+    vertical-align: middle;
+    margin-left: 0.5rem;
+}
+
+/* Test card info box */
+.card.border-info {
+    border-color: var(--accent-color) !important;
+    background-color: #fdf8f3;
+}
+
+
+/* --------------------------------------------------------------------------
+   20. VENDOR DETAIL — vendor-detail.php image
+   -------------------------------------------------------------------------- */
+
+.vendor-detail-img {
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   21. DASHBOARD METRIC CARDS — vendor + customer dashboards
+   -------------------------------------------------------------------------- */
+
+/* Metric value — large number display on dashboards */
+.metric-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    line-height: 1.2;
+}
+
+.metric-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-body);
+}
+
+.metric-sublabel {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+
+/* --------------------------------------------------------------------------
+   22. TYPOGRAPHY HELPERS
+   -------------------------------------------------------------------------- */
 
 .text-sm {
     font-size: 0.9rem;
@@ -116,12 +665,145 @@ body {
     color: var(--primary-color);
 }
 
-/* Vendor and product card images — consistent height, crop to fill */
-.card img,
-.vendor-card img,
-.product-card img {
-    width: 100%;
-    height: 220px;          /* Adjust this value to match your card design */
-    object-fit: cover;      /* Crops to fill the space — no stretching */
-    object-position: center; /* Centers the crop point */
+.text-secondary-green {
+    color: var(--secondary-color);
+}
+
+.text-accent-earth {
+    color: var(--accent-color);
+}
+
+
+/* --------------------------------------------------------------------------
+   23. UTILITY CLASSES
+   -------------------------------------------------------------------------- */
+
+/* Background helpers */
+.bg-section {
+    background-color: var(--bg-section);
+}
+
+.bg-warm {
+    background-color: var(--bg-warm);
+}
+
+/* Border helpers */
+.border-green {
+    border-color: var(--secondary-color) !important;
+}
+
+.border-earth {
+    border-color: var(--accent-color) !important;
+}
+
+/* Divider with accent color */
+.divider-accent {
+    border-top: 2px solid var(--accent-color);
+}
+
+
+/* --------------------------------------------------------------------------
+   24. RESPONSIVE ADJUSTMENTS
+   -------------------------------------------------------------------------- */
+
+/* ── Mobile (up to 575px) ────────────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+    .hero-banner {
+        padding: 50px 15px;
+    }
+
+    .hero-banner h1 {
+        font-size: 1.75rem;
+    }
+
+    .hero-banner .lead {
+        font-size: 1rem;
+    }
+
+    .cta-section {
+        padding: 40px 15px;
+    }
+
+    .about-section {
+        padding: 1.5rem;
+    }
+
+    /* Stack checkout progress on mobile */
+    .checkout-progress {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Full-width buttons on mobile */
+    .d-flex.gap-2.justify-content-center.flex-wrap .btn {
+        flex: 1 1 100%;
+    }
+
+    /* Cards — slightly less padding on small screens */
+    .card-body.p-4 {
+        padding: 1.25rem !important;
+    }
+
+    /* Product detail — stack the 3-column layout */
+    .product-detail-img {
+        max-height: 280px;
+    }
+}
+
+/* ── Tablet (576px – 991px) ──────────────────────────────────────────────── */
+@media (min-width: 576px) and (max-width: 991.98px) {
+    .hero-banner {
+        padding: 60px 20px;
+    }
+
+    .hero-banner h1 {
+        font-size: 2.25rem;
+    }
+}
+
+/* ── Desktop tweaks (992px+) ─────────────────────────────────────────────── */
+@media (min-width: 992px) {
+    /* Navbar links get a subtle underline on hover */
+    .nav-link::after {
+        content: '';
+        display: block;
+        width: 0;
+        height: 2px;
+        background: var(--accent-color);
+        transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after {
+        width: 100%;
+    }
+
+    /* Dropdown items within the navbar shouldn't have the underline */
+    .dropdown-menu .nav-link::after,
+    .dropdown-item::after {
+        display: none;
+    }
+}
+
+
+/* --------------------------------------------------------------------------
+   25. PRINT STYLES (bonus — useful for order confirmations)
+   -------------------------------------------------------------------------- */
+
+@media print {
+    .navbar,
+    footer,
+    .btn,
+    .checkout-progress {
+        display: none !important;
+    }
+
+    body {
+        background: #ffffff;
+        color: #000;
+    }
+
+    .card {
+        border: 1px solid #ccc;
+        box-shadow: none;
+    }
 }

@@ -12,7 +12,7 @@
 </main>
 
 <!-- Footer -->
-<footer class="bg-dark text-white mt-5 py-5">
+<footer class="text-white mt-5 py-5">
     <div class="container">
         <div class="row mb-4">
             <div class="col-md-4 mb-3">
