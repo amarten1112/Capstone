@@ -107,10 +107,43 @@ a:hover {
     color: var(--accent-color) !important;
 }
 
-/* Active nav link — slightly brighter so the current page stands out */
+/* Active nav link — bright white so the current page stands out */
 .nav-link.active,
 .navbar .nav-link.active {
     color: #ffffff !important;
+    font-weight: 600;
+}
+
+/* Vertical separator between public links and auth/cart links */
+.nav-separator {
+    display: inline-block;
+    width: 1px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Cart badge — pill next to "Cart" text */
+.cart-badge {
+    font-size: 0.65rem;
+    vertical-align: top;
+    margin-left: 0.15rem;
+}
+
+/* Mobile menu spacing — more breathing room when collapsed */
+@media (max-width: 991.98px) {
+    .navbar-nav .nav-link {
+        padding: 0.6rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .navbar-nav .nav-item:last-child .nav-link {
+        border-bottom: none;
+    }
+
+    /* Hide the vertical separator on mobile — not needed */
+    .nav-separator {
+        display: none;
+    }
 }
 
 /* Dropdown menu inside navbar */

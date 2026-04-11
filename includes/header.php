@@ -2,14 +2,47 @@
 /**
  * header.php - Navigation Header (Included on every page)
  *
- * This file contains the HTML header, navigation menu, and opening of the main container.
- * Include this at the top of the page body on every public page.
+ * Phase 6, Task 6.9 — Navigation & Layout improvements:
+ *   - Active page highlighting on nav links
+ *   - Cart badge with live item count (customers only)
+ *   - Visual separator between public links and auth links
+ *   - Improved mobile spacing
  *
- * Requires: config.php (provides $base_url) and auth.php (provides session functions)
+ * Requires: config.php (provides $base_url, $conn) and auth.php (provides session functions)
  *           must be included BEFORE this file.
  *
  * Usage: include 'includes/header.php';
  */
+
+// ─── Detect current page for active nav highlighting ─────────────────────────
+// Compare the current script filename against each nav link target.
+// REQUEST_URI includes query strings — basename(parse_url) strips them.
+$_current_page = basename(parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH));
+
+/**
+ * Returns ' active' if the current page matches the given filename(s).
+ * Accepts a single filename or an array for pages that share a link
+ * (e.g. vendor-detail.php should highlight the "Vendors" link).
+ */
+function nav_active(string|array $pages): string {
+    global $_current_page;
+    $pages = (array) $pages;
+    return in_array($_current_page, $pages, true) ? ' active' : '';
+}
+
+// ─── Cart count for badge (customers only) ──────────────────────────────────
+// One lightweight query here so the count is always current in the navbar.
+$_cart_count = 0;
+if (is_logged_in() && get_current_user_type() === 'customer') {
+    $cid = get_customer_id();
+    if ($cid) {
+        $stmt = $conn->prepare('SELECT COUNT(*) AS cnt FROM cart WHERE customer_id = ?');
+        $stmt->bind_param('i', $cid);
+        $stmt->execute();
+        $_cart_count = (int) $stmt->get_result()->fetch_assoc()['cnt'];
+        $stmt->close();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -40,28 +73,31 @@
         <a class="navbar-brand" href="<?= $base_url ?>/index.php">
             🌱 Virginia Market Square
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
+
+            <!-- ── Public navigation links ─────────────────────────────────── -->
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= $base_url ?>/index.php">Home</a>
+                    <a class="nav-link<?= nav_active('index.php') ?>" href="<?= $base_url ?>/index.php">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= $base_url ?>/vendors.php">Vendors</a>
+                    <a class="nav-link<?= nav_active(['vendors.php', 'vendor-detail.php']) ?>" href="<?= $base_url ?>/vendors.php">Vendors</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= $base_url ?>/products.php">Products</a>
+                    <a class="nav-link<?= nav_active(['products.php', 'product-detail.php']) ?>" href="<?= $base_url ?>/products.php">Products</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= $base_url ?>/events.php">Events</a>
+                    <a class="nav-link<?= nav_active('events.php') ?>" href="<?= $base_url ?>/events.php">Events</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= $base_url ?>/about.php">About</a>
+                    <a class="nav-link<?= nav_active('about.php') ?>" href="<?= $base_url ?>/about.php">About</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= $base_url ?>/contact.php">Contact</a>
+                    <a class="nav-link<?= nav_active('contact.php') ?>" href="<?= $base_url ?>/contact.php">Contact</a>
                 </li>
 
                 <?php if (is_logged_in()): ?>
@@ -83,18 +119,29 @@
                     }
                     ?>
 
+                    <!-- ── Separator between public and auth links ─────────── -->
+                    <li class="nav-item d-none d-lg-flex align-items-center mx-1">
+                        <span class="nav-separator"></span>
+                    </li>
+
                     <?php if ($user_type === 'customer'): ?>
-                        <!-- Cart link (customers only) -->
+                        <!-- Cart link with item count badge (customers only) -->
                         <li class="nav-item">
-                            <a class="nav-link" href="<?= $base_url ?>/customer/cart.php">
+                            <a class="nav-link<?= nav_active(['cart.php']) ?>"
+                               href="<?= $base_url ?>/customer/cart.php">
                                 🛒 Cart
+                                <?php if ($_cart_count > 0): ?>
+                                    <span class="badge rounded-pill bg-warning text-dark cart-badge">
+                                        <?= $_cart_count ?>
+                                    </span>
+                                <?php endif; ?>
                             </a>
                         </li>
                     <?php endif; ?>
 
                     <!-- Dashboard link (role-specific) -->
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $dashboard_url ?>">
+                        <a class="nav-link<?= nav_active('dashboard.php') ?>" href="<?= $dashboard_url ?>">
                             <?= htmlspecialchars($dashboard_label, ENT_QUOTES, 'UTF-8') ?>
                         </a>
                     </li>
@@ -115,12 +162,17 @@
                     </li>
 
                 <?php else: ?>
+                    <!-- ── Separator before login/register ─────────────────── -->
+                    <li class="nav-item d-none d-lg-flex align-items-center mx-1">
+                        <span class="nav-separator"></span>
+                    </li>
+
                     <!-- Not logged in — show login and register links -->
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $base_url ?>/login.php">Login</a>
+                        <a class="nav-link<?= nav_active('login.php') ?>" href="<?= $base_url ?>/login.php">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $base_url ?>/register.php">Register</a>
+                        <a class="nav-link<?= nav_active('register.php') ?>" href="<?= $base_url ?>/register.php">Register</a>
                     </li>
                 <?php endif; ?>
             </ul>
