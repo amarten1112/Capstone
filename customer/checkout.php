@@ -3,17 +3,8 @@
  * customer/checkout.php — Checkout Step 1: Shipping Address
  * Virginia Market Square
  *
- * Phase 4, Task 4.9
- *
- * Step 1 of 2-step checkout:
- *   1. Shipping address (this page) → stores in $_SESSION['checkout']
- *   2. Review & place order (checkout-review.php)
- *
- * Pre-fills shipping fields from the customer's profile (customers table).
- * On submit, validates required fields, stores them in session, and
- * redirects to checkout-review.php.
- *
- * If the cart is empty, redirects back to cart.php.
+ * Phase 4, Task 4.9 (logic)
+ * Phase 6, Task 6.6 (UI polish)
  */
 
 require_once '../includes/config.php';
@@ -69,7 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid form submission. Please try again.';
     } else {
-        // Collect shipping fields
         $ship_name     = trim($_POST['ship_name']     ?? '');
         $ship_address1 = trim($_POST['ship_address1'] ?? '');
         $ship_address2 = trim($_POST['ship_address2'] ?? '');
@@ -78,12 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ship_zip      = trim($_POST['ship_zip']      ?? '');
         $notes         = trim($_POST['notes']         ?? '');
 
-        // Validate required fields
         if ($ship_name === '' || $ship_address1 === '' || $ship_city === ''
             || $ship_state === '' || $ship_zip === '') {
             $error = 'Please fill in all required shipping fields.';
         } else {
-            // Store shipping data in session for step 2
             $_SESSION['checkout'] = [
                 'ship_name'     => $ship_name,
                 'ship_address1' => $ship_address1,
@@ -99,21 +87,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ─── Determine pre-fill values ──────────────────────────────────────────────
-// Priority: POST values (if validation failed) > session (if going back from
-// review) > profile data > empty string
+// ─── Pre-fill values ────────────────────────────────────────────────────────
 $checkout = $_SESSION['checkout'] ?? [];
 
 $val = function(string $field) use ($profile, $checkout) {
-    // POST value takes priority (form resubmission after error)
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[$field])) {
         return $_POST[$field];
     }
-    // Session value (returning from review page)
     if (isset($checkout[$field])) {
         return $checkout[$field];
     }
-    // Map form field names to profile column names
     $profile_map = [
         'ship_name'     => 'full_name',
         'ship_address1' => 'address_line1',
@@ -131,15 +114,13 @@ include '../includes/header.php';
 ?>
 
 <!-- Checkout progress indicator -->
-<div class="mb-4">
-    <div class="d-flex justify-content-center gap-3">
-        <span class="badge bg-success px-3 py-2">1. Shipping</span>
-        <span class="badge bg-secondary px-3 py-2">2. Review & Pay</span>
-    </div>
+<div class="checkout-progress">
+    <span class="checkout-step checkout-step-active">1. Shipping</span>
+    <span class="checkout-step checkout-step-inactive">2. Review &amp; Pay</span>
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-lg-8">
         <h2 class="mb-4">Shipping Address</h2>
 
         <?php if ($error): ?>
@@ -152,7 +133,6 @@ include '../includes/header.php';
                     <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
 
                     <div class="row g-3">
-                        <!-- Full name -->
                         <div class="col-12">
                             <label class="form-label">Full Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="ship_name"
@@ -160,7 +140,6 @@ include '../includes/header.php';
                                    required>
                         </div>
 
-                        <!-- Address line 1 -->
                         <div class="col-12">
                             <label class="form-label">Street Address <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="ship_address1"
@@ -169,7 +148,6 @@ include '../includes/header.php';
                                    required>
                         </div>
 
-                        <!-- Address line 2 -->
                         <div class="col-12">
                             <label class="form-label">Apt, Suite, Unit <span class="text-muted">(optional)</span></label>
                             <input type="text" class="form-control" name="ship_address2"
@@ -177,7 +155,6 @@ include '../includes/header.php';
                                    value="<?= htmlspecialchars($val('ship_address2'), ENT_QUOTES, 'UTF-8') ?>">
                         </div>
 
-                        <!-- City -->
                         <div class="col-md-5">
                             <label class="form-label">City <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="ship_city"
@@ -185,27 +162,22 @@ include '../includes/header.php';
                                    required>
                         </div>
 
-                        <!-- State -->
                         <div class="col-md-4">
                             <label class="form-label">State <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="ship_state"
-                                   placeholder="MN"
-                                   maxlength="50"
+                                   placeholder="MN" maxlength="50"
                                    value="<?= htmlspecialchars($val('ship_state'), ENT_QUOTES, 'UTF-8') ?>"
                                    required>
                         </div>
 
-                        <!-- ZIP -->
                         <div class="col-md-3">
                             <label class="form-label">ZIP Code <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="ship_zip"
-                                   placeholder="55792"
-                                   maxlength="10"
+                                   placeholder="55792" maxlength="10"
                                    value="<?= htmlspecialchars($val('ship_zip'), ENT_QUOTES, 'UTF-8') ?>"
                                    required>
                         </div>
 
-                        <!-- Order notes -->
                         <div class="col-12">
                             <label class="form-label">Order Notes <span class="text-muted">(optional)</span></label>
                             <textarea class="form-control" name="notes" rows="3"
