@@ -3,9 +3,8 @@
  * products.php — Product Browsing Page
  * Virginia Market Square
  *
- * Phase 4, Tasks 4.1 + 4.2:
- *   4.1 — Pagination, improved JOINs, product detail links
- *   4.2 — Sort-by dropdown, price range filter, category counts
+ * Phase 4, Tasks 4.1 + 4.2 (logic)
+ * Phase 6, Task 6.3 (UI polish)
  *
  * Filter params (all GET):
  *   search   — keyword search across product name, description, vendor name
@@ -28,12 +27,9 @@ $min_price   = isset($_GET['min_price']) && $_GET['min_price'] !== '' ? (float) 
 $max_price   = isset($_GET['max_price']) && $_GET['max_price'] !== '' ? (float) $_GET['max_price'] : null;
 $page        = isset($_GET['page'])     ? max(1, (int) $_GET['page']) : 1;
 
-// Products per page — 12 fits a 4-column grid evenly (3 rows of 4)
 $per_page = 12;
 
 // ─── Allowed sort options ───────────────────────────────────────────────────
-// Map URL param values to SQL ORDER BY clauses.
-// 'featured' is the default: featured products first, then alphabetical.
 $sort_options = [
     'featured'   => ['label' => 'Featured First',     'sql' => 'p.featured DESC, p.product_name ASC'],
     'price_asc'  => ['label' => 'Price: Low to High', 'sql' => 'p.price ASC, p.product_name ASC'],
@@ -42,14 +38,13 @@ $sort_options = [
     'name_asc'   => ['label' => 'Name: A–Z',          'sql' => 'p.product_name ASC'],
 ];
 
-// Fall back to 'featured' if the submitted sort value is invalid
 if (!isset($sort_options[$sort])) {
     $sort = 'featured';
 }
 
 $order_by = $sort_options[$sort]['sql'];
 
-// ─── Build WHERE clause (shared by count + data queries) ────────────────────
+// ─── Build WHERE clause ─────────────────────────────────────────────────────
 $where  = ['p.is_available = 1', 'p.stock_quantity > 0'];
 $params = [];
 $types  = '';
@@ -69,11 +64,10 @@ if ($category_id > 0) {
     $types   .= 'i';
 }
 
-// Price range filters — only add if the user entered a value
 if ($min_price !== null && $min_price >= 0) {
     $where[]  = 'p.price >= ?';
     $params[] = $min_price;
-    $types   .= 'd';   // 'd' = double (for DECIMAL columns)
+    $types   .= 'd';
 }
 
 if ($max_price !== null && $max_price > 0) {
@@ -84,15 +78,12 @@ if ($max_price !== null && $max_price > 0) {
 
 $where_clause = 'WHERE ' . implode(' AND ', $where);
 
-// ─── Shared FROM/JOIN fragment ──────────────────────────────────────────────
-// Used by both the COUNT query and the data query to stay in sync.
 $from_clause = "FROM products p
                 JOIN vendors v    ON p.vendor_id  = v.vendor_id AND v.verified = 1
                 JOIN categories c ON p.category_id = c.category_id";
 
-// ─── Count total matching products (for pagination math) ────────────────────
+// ─── Count query ────────────────────────────────────────────────────────────
 $count_sql = "SELECT COUNT(*) AS total $from_clause $where_clause";
-
 $stmt = $conn->prepare($count_sql);
 if ($params) {
     $stmt->bind_param($types, ...$params);
@@ -101,15 +92,13 @@ $stmt->execute();
 $total_products = (int) $stmt->get_result()->fetch_assoc()['total'];
 $stmt->close();
 
-// Calculate pagination values
 $total_pages = max(1, (int) ceil($total_products / $per_page));
 $page        = min($page, $total_pages);
 $offset      = ($page - 1) * $per_page;
-
 $range_start = $total_products > 0 ? $offset + 1 : 0;
 $range_end   = min($offset + $per_page, $total_products);
 
-// ─── Fetch the current page of products ─────────────────────────────────────
+// ─── Data query ─────────────────────────────────────────────────────────────
 $data_sql = "SELECT p.product_id, p.product_name, p.description, p.price,
                     p.image_url, p.unit, p.featured, p.stock_quantity,
                     p.category_id,
@@ -131,10 +120,7 @@ $stmt->execute();
 $products = $stmt->get_result();
 $stmt->close();
 
-// ─── Get categories WITH product counts for the filter dropdown ─────────────
-// This query counts how many available, in-stock products exist per category
-// (from verified vendors). Categories with 0 matching products are still shown
-// so the user can see the full list, but the count tells them what's available.
+// ─── Categories for filter dropdown ─────────────────────────────────────────
 $cat_sql = "SELECT c.category_id, c.category_name,
                    COUNT(p.product_id) AS product_count
             FROM categories c
@@ -148,11 +134,8 @@ $cat_sql = "SELECT c.category_id, c.category_name,
 
 $categories = $conn->query($cat_sql);
 
-// ─── Helper: build URL preserving all current filters ───────────────────────
-// Every filter control (pagination, sort, category badge) needs to carry
-// forward all the other active filters so clicking one doesn't reset the rest.
+// ─── URL builder ────────────────────────────────────────────────────────────
 function build_url(array $overrides = []): string {
-    // Gather current filter state from globals
     global $search, $category_id, $sort, $min_price, $max_price;
 
     $params = [];
@@ -162,7 +145,6 @@ function build_url(array $overrides = []): string {
     if ($min_price !== null)  $params['min_price']  = $min_price;
     if ($max_price !== null)  $params['max_price']  = $max_price;
 
-    // Apply overrides (e.g. changing the page number)
     foreach ($overrides as $key => $val) {
         if ($val === null || $val === '' || $val === 0) {
             unset($params[$key]);
@@ -171,7 +153,6 @@ function build_url(array $overrides = []): string {
         }
     }
 
-    // Don't include page=1 in the URL (it's the default)
     if (isset($params['page']) && (int) $params['page'] <= 1) {
         unset($params['page']);
     }
@@ -180,7 +161,6 @@ function build_url(array $overrides = []): string {
     return 'products.php' . ($qs !== '' ? '?' . $qs : '');
 }
 
-// Check whether any filters are active (to show the Clear button)
 $has_filters = ($search !== '' || $category_id > 0
                 || $sort !== 'featured'
                 || $min_price !== null || $max_price !== null);
@@ -188,7 +168,7 @@ $has_filters = ($search !== '' || $category_id > 0
 include 'includes/header.php';
 ?>
 
-<!-- Page heading with result count -->
+<!-- Page heading -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Products</h1>
     <span class="text-muted">
@@ -201,64 +181,69 @@ include 'includes/header.php';
 </div>
 
 <!-- ─── Filter Form ──────────────────────────────────────────────────────── -->
-<form method="GET" action="products.php" class="mb-4">
+<div class="card shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="GET" action="products.php">
 
-    <!-- Row 1: Search + Category + Buttons -->
-    <div class="row g-2 mb-2">
-        <div class="col-md-5">
-            <input type="text" class="form-control" name="search"
-                   placeholder="Search products or vendors..."
-                   value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
-        </div>
-        <div class="col-md-4">
-            <select class="form-select" name="category">
-                <option value="">All Categories</option>
-                <?php if ($categories): while ($cat = $categories->fetch_assoc()): ?>
-                    <option value="<?= (int) $cat['category_id'] ?>"
-                        <?= $category_id === (int) $cat['category_id'] ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($cat['category_name'], ENT_QUOTES, 'UTF-8') ?>
-                        (<?= (int) $cat['product_count'] ?>)
-                    </option>
-                <?php endwhile; endif; ?>
-            </select>
-        </div>
-        <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-success flex-grow-1">Filter</button>
-            <?php if ($has_filters): ?>
-                <a href="products.php" class="btn btn-outline-secondary">Clear</a>
-            <?php endif; ?>
-        </div>
-    </div>
+            <!-- Row 1: Search + Category + Buttons -->
+            <div class="row g-2 mb-2">
+                <div class="col-md-5">
+                    <input type="text" class="form-control" name="search"
+                           placeholder="Search products or vendors..."
+                           value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" name="category">
+                        <option value="">All Categories</option>
+                        <?php if ($categories): while ($cat = $categories->fetch_assoc()): ?>
+                            <option value="<?= (int) $cat['category_id'] ?>"
+                                <?= $category_id === (int) $cat['category_id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($cat['category_name'], ENT_QUOTES, 'UTF-8') ?>
+                                (<?= (int) $cat['product_count'] ?>)
+                            </option>
+                        <?php endwhile; endif; ?>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-success flex-grow-1">Filter</button>
+                    <?php if ($has_filters): ?>
+                        <a href="products.php" class="btn btn-outline-secondary">Clear</a>
+                    <?php endif; ?>
+                </div>
+            </div>
 
-    <!-- Row 2: Sort + Price Range -->
-    <div class="row g-2">
-        <div class="col-md-3">
-            <select class="form-select" name="sort">
-                <?php foreach ($sort_options as $key => $opt): ?>
-                    <option value="<?= $key ?>" <?= $sort === $key ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($opt['label'], ENT_QUOTES, 'UTF-8') ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" class="form-control" name="min_price"
-                       placeholder="Min" step="0.01" min="0"
-                       value="<?= $min_price !== null ? htmlspecialchars($min_price, ENT_QUOTES, 'UTF-8') : '' ?>">
+            <!-- Row 2: Sort + Price Range -->
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <select class="form-select" name="sort">
+                        <?php foreach ($sort_options as $key => $opt): ?>
+                            <option value="<?= $key ?>" <?= $sort === $key ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($opt['label'], ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" name="min_price"
+                               placeholder="Min" step="0.01" min="0"
+                               value="<?= $min_price !== null ? htmlspecialchars($min_price, ENT_QUOTES, 'UTF-8') : '' ?>">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" name="max_price"
+                               placeholder="Max" step="0.01" min="0"
+                               value="<?= $max_price !== null ? htmlspecialchars($max_price, ENT_QUOTES, 'UTF-8') : '' ?>">
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="col-md-2">
-            <div class="input-group">
-                <span class="input-group-text">$</span>
-                <input type="number" class="form-control" name="max_price"
-                       placeholder="Max" step="0.01" min="0"
-                       value="<?= $max_price !== null ? htmlspecialchars($max_price, ENT_QUOTES, 'UTF-8') : '' ?>">
-            </div>
-        </div>
+
+        </form>
     </div>
-</form>
+</div>
 
 <!-- ─── Product Grid ─────────────────────────────────────────────────────── -->
 <?php if ($products->num_rows > 0): ?>
@@ -270,8 +255,13 @@ include 'includes/header.php';
                     <?php if (!empty($product['image_url'])): ?>
                         <a href="product-detail.php?id=<?= (int) $product['product_id'] ?>">
                             <img src="<?= htmlspecialchars($product['image_url'], ENT_QUOTES, 'UTF-8') ?>"
-                                 class="card-img-top" style="height:180px;object-fit:cover;"
+                                 class="card-img-top"
                                  alt="<?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8') ?>">
+                        </a>
+                    <?php else: ?>
+                        <a href="product-detail.php?id=<?= (int) $product['product_id'] ?>"
+                           class="card-img-top vendor-card-image-placeholder text-decoration-none">
+                            <span>No image</span>
                         </a>
                     <?php endif; ?>
 

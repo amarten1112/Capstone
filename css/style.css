@@ -577,6 +577,11 @@ footer hr {
     font-weight: 600;
 }
 
+/* Quantity input — compact width for the add-to-cart form */
+.qty-input {
+    width: 80px;
+}
+
 
 /* --------------------------------------------------------------------------
    18. CHECKOUT PROGRESS INDICATOR
