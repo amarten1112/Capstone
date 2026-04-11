@@ -584,6 +584,49 @@ footer hr {
 
 
 /* --------------------------------------------------------------------------
+   17b. SHOPPING CART — cart.php
+   -------------------------------------------------------------------------- */
+
+/* Cart item row — flexbox layout for image + info + actions */
+.cart-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+/* Cart thumbnail */
+.cart-thumb {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+/* Actions column — fixed width so line totals align */
+.cart-item-actions {
+    min-width: 140px;
+    flex-shrink: 0;
+}
+
+/* Mobile: stack cart items vertically */
+@media (max-width: 575.98px) {
+    .cart-item {
+        flex-wrap: wrap;
+    }
+
+    .cart-item-actions {
+        min-width: 100%;
+        text-align: left !important;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        margin-top: 0.5rem;
+    }
+}
+
+
+/* --------------------------------------------------------------------------
    18. CHECKOUT PROGRESS INDICATOR
    -------------------------------------------------------------------------- */
 
