@@ -125,7 +125,7 @@ include '../includes/header.php';
                             <!-- Product image -->
                             <?php if (!empty($item['image_url'])): ?>
                                 <a href="<?= $base_url ?>/product-detail.php?id=<?= (int) $item['product_id'] ?>">
-                                    <img src="<?= htmlspecialchars($item['image_url'], ENT_QUOTES, 'UTF-8') ?>"
+                                    <img src="<?= $base_url . '/' . htmlspecialchars($item['image_url'], ENT_QUOTES, 'UTF-8') ?>"
                                          style="width:80px;height:80px;object-fit:cover;"
                                          class="rounded"
                                          alt="<?= htmlspecialchars($item['product_name'], ENT_QUOTES, 'UTF-8') ?>">
