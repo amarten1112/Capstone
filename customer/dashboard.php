@@ -3,9 +3,8 @@
  * customer/dashboard.php — Customer Dashboard
  * Virginia Market Square
  *
- * Phase 4 update — replaces Phase 3 placeholder.
- * Shows welcome message, quick-action cards with live data,
- * and recent orders.
+ * Phase 4 (logic)
+ * Phase 6, Task 6.7 (UI polish — metric classes, breakpoints)
  */
 
 require_once '../includes/config.php';
@@ -62,15 +61,24 @@ if ($customer_id) {
     $stmt->close();
 }
 
+$status_badges = [
+    'pending'    => 'bg-warning text-dark',
+    'processing' => 'bg-info text-dark',
+    'shipped'    => 'bg-primary',
+    'delivered'  => 'bg-success',
+    'cancelled'  => 'bg-secondary',
+    'refunded'   => 'bg-danger',
+];
+
 include '../includes/header.php';
 ?>
 
 <div class="row">
-    <div class="col-md-10 mx-auto">
+    <div class="col-lg-10 mx-auto">
         <h1 class="mb-4">My Account</h1>
 
         <!-- Welcome card -->
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm mb-4 card-top-accent-green">
             <div class="card-body">
                 <h5 class="card-title">
                     Welcome, <?= htmlspecialchars($_SESSION['full_name'] ?? 'Customer', ENT_QUOTES, 'UTF-8') ?>
@@ -84,41 +92,39 @@ include '../includes/header.php';
 
         <!-- Quick action cards -->
         <div class="row g-3 mb-4">
-            <div class="col-md-4">
+            <div class="col-6 col-lg-4">
                 <a href="<?= $base_url ?>/customer/cart.php" class="text-decoration-none">
                     <div class="card text-center h-100 card-top-accent-green">
                         <div class="card-body">
-                            <h3 class="mb-2 text-success"><?= $cart_count ?></h3>
-                            <h6>Shopping Cart</h6>
-                            <p class="small text-muted mb-0">
+                            <div class="metric-value"><?= $cart_count ?></div>
+                            <div class="metric-label">Shopping Cart</div>
+                            <div class="metric-sublabel">
                                 <?= $cart_count ?> item<?= $cart_count !== 1 ? 's' : '' ?> in cart
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </a>
             </div>
-            <div class="col-md-4">
+            <div class="col-6 col-lg-4">
                 <a href="<?= $base_url ?>/customer/orders.php" class="text-decoration-none">
                     <div class="card text-center h-100 card-top-accent-green">
                         <div class="card-body">
-                            <h3 class="mb-2 text-success"><?= $order_count ?></h3>
-                            <h6>Order History</h6>
-                            <p class="small text-muted mb-0">
+                            <div class="metric-value"><?= $order_count ?></div>
+                            <div class="metric-label">Order History</div>
+                            <div class="metric-sublabel">
                                 $<?= number_format($total_spent, 2) ?> total
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </a>
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-lg-4">
                 <a href="<?= $base_url ?>/products.php" class="text-decoration-none">
                     <div class="card text-center h-100 card-top-accent-green">
                         <div class="card-body">
-                            <h3 class="mb-2">🌱</h3>
-                            <h6>Browse Products</h6>
-                            <p class="small text-muted mb-0">
-                                Find fresh local goods
-                            </p>
+                            <div class="metric-value">🌱</div>
+                            <div class="metric-label">Browse Products</div>
+                            <div class="metric-sublabel">Find fresh local goods</div>
                         </div>
                     </div>
                 </a>
@@ -132,7 +138,7 @@ include '../includes/header.php';
             <div class="card shadow-sm">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
                                 <th>Order #</th>
                                 <th>Date</th>
@@ -144,15 +150,6 @@ include '../includes/header.php';
                         </thead>
                         <tbody>
                             <?php while ($order = $recent_orders->fetch_assoc()):
-                                // Map status to Bootstrap badge colors
-                                $status_badges = [
-                                    'pending'    => 'bg-warning text-dark',
-                                    'processing' => 'bg-info text-dark',
-                                    'shipped'    => 'bg-primary',
-                                    'delivered'  => 'bg-success',
-                                    'cancelled'  => 'bg-secondary',
-                                    'refunded'   => 'bg-danger',
-                                ];
                                 $badge = $status_badges[$order['order_status']] ?? 'bg-secondary';
                             ?>
                                 <tr>

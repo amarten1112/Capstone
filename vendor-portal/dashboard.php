@@ -3,17 +3,8 @@
  * vendor-portal/dashboard.php — Vendor Dashboard
  * Virginia Market Square
  *
- * Phase 4, Task 4.12
- *
- * Replaces Phase 3 placeholder. Shows:
- *   - Welcome message with vendor name
- *   - Metric cards: Total Products, Pending Orders, Total Revenue,
- *     Revenue (Last 30 Days), Total Orders, Items Sold
- *   - Recent Orders table (orders containing this vendor's products)
- *   - Quick links to product management and storefront
- *
- * All metrics are calculated via JOINs through order_items.vendor_id
- * (the denormalized FK designed specifically for this dashboard).
+ * Phase 4, Task 4.12 (logic)
+ * Phase 6, Task 6.7 (UI polish — metric classes, breakpoints)
  */
 
 require_once '../includes/config.php';
@@ -37,7 +28,7 @@ $stmt->execute();
 $vendor = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-// ─── Metric: Total Products ─────────────────────────────────────────────────
+// ─── Metrics ────────────────────────────────────────────────────────────────
 $stmt = $conn->prepare(
     'SELECT COUNT(*) AS cnt FROM products WHERE vendor_id = ? AND is_available = 1'
 );
@@ -46,7 +37,6 @@ $stmt->execute();
 $total_products = (int) $stmt->get_result()->fetch_assoc()['cnt'];
 $stmt->close();
 
-// ─── Metric: Pending Orders (orders with at least one of this vendor's items) ──
 $stmt = $conn->prepare(
     "SELECT COUNT(DISTINCT oi.order_id) AS cnt
      FROM order_items oi
@@ -58,7 +48,6 @@ $stmt->execute();
 $pending_orders = (int) $stmt->get_result()->fetch_assoc()['cnt'];
 $stmt->close();
 
-// ─── Metric: Total Revenue (all time) ───────────────────────────────────────
 $stmt = $conn->prepare(
     "SELECT COALESCE(SUM(oi.line_total), 0) AS total
      FROM order_items oi
@@ -70,7 +59,6 @@ $stmt->execute();
 $total_revenue = (float) $stmt->get_result()->fetch_assoc()['total'];
 $stmt->close();
 
-// ─── Metric: Revenue Last 30 Days ───────────────────────────────────────────
 $stmt = $conn->prepare(
     "SELECT COALESCE(SUM(oi.line_total), 0) AS total
      FROM order_items oi
@@ -84,7 +72,6 @@ $stmt->execute();
 $revenue_30d = (float) $stmt->get_result()->fetch_assoc()['total'];
 $stmt->close();
 
-// ─── Metric: Total Orders + Items Sold ──────────────────────────────────────
 $stmt = $conn->prepare(
     "SELECT COUNT(DISTINCT oi.order_id) AS order_count,
             COALESCE(SUM(oi.quantity), 0) AS items_sold
@@ -99,7 +86,7 @@ $total_orders = (int) $sales_stats['order_count'];
 $items_sold   = (int) $sales_stats['items_sold'];
 $stmt->close();
 
-// ─── Recent Orders (last 10 containing this vendor's products) ──────────────
+// ─── Recent Orders ──────────────────────────────────────────────────────────
 $stmt = $conn->prepare(
     "SELECT o.order_id, o.order_status, o.order_date,
             u.full_name AS customer_name,
@@ -119,7 +106,6 @@ $stmt->execute();
 $recent_orders = $stmt->get_result();
 $stmt->close();
 
-// Status badge mapping
 $status_badges = [
     'pending'    => 'bg-warning text-dark',
     'processing' => 'bg-info text-dark',
@@ -133,12 +119,12 @@ include '../includes/header.php';
 ?>
 
 <div class="row">
-    <div class="col-md-10 mx-auto">
+    <div class="col-lg-10 mx-auto">
 
         <h1 class="mb-4">Vendor Dashboard</h1>
 
         <!-- Welcome card -->
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm mb-4 card-top-accent-green">
             <div class="card-body">
                 <h5 class="card-title">
                     Welcome, <?= htmlspecialchars($vendor['vendor_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>
@@ -152,66 +138,66 @@ include '../includes/header.php';
 
         <!-- ─── Metric Cards ─────────────────────────────────────────────── -->
         <div class="row g-3 mb-4">
-            <div class="col-md-4">
+            <div class="col-6 col-lg-4">
                 <a href="<?= $base_url ?>/vendor-portal/products.php" class="text-decoration-none">
                     <div class="card text-center h-100 card-top-accent-green">
                         <div class="card-body">
-                            <h3 class="mb-2 text-success"><?= $total_products ?></h3>
-                            <h6>Total Products</h6>
-                            <p class="small text-muted mb-0">Active listings</p>
+                            <div class="metric-value"><?= $total_products ?></div>
+                            <div class="metric-label">Total Products</div>
+                            <div class="metric-sublabel">Active listings</div>
                         </div>
                     </div>
                 </a>
             </div>
-            <div class="col-md-4">
+            <div class="col-6 col-lg-4">
                 <div class="card text-center h-100 card-top-accent-earth">
                     <div class="card-body">
-                        <h3 class="mb-2" style="color:var(--accent-color);"><?= $pending_orders ?></h3>
-                        <h6>Pending Orders</h6>
-                        <p class="small text-muted mb-0">Awaiting processing</p>
+                        <div class="metric-value text-accent-earth"><?= $pending_orders ?></div>
+                        <div class="metric-label">Pending Orders</div>
+                        <div class="metric-sublabel">Awaiting processing</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-6 col-lg-4">
                 <div class="card text-center h-100 card-top-accent-green">
                     <div class="card-body">
-                        <h3 class="mb-2 text-success">$<?= number_format($total_revenue, 2) ?></h3>
-                        <h6>Total Revenue</h6>
-                        <p class="small text-muted mb-0">All time</p>
+                        <div class="metric-value">$<?= number_format($total_revenue, 2) ?></div>
+                        <div class="metric-label">Total Revenue</div>
+                        <div class="metric-sublabel">All time</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-6 col-lg-4">
                 <div class="card text-center h-100 card-top-accent-green">
                     <div class="card-body">
-                        <h3 class="mb-2 text-success">$<?= number_format($revenue_30d, 2) ?></h3>
-                        <h6>Recent Revenue</h6>
-                        <p class="small text-muted mb-0">Last 30 days</p>
+                        <div class="metric-value">$<?= number_format($revenue_30d, 2) ?></div>
+                        <div class="metric-label">Recent Revenue</div>
+                        <div class="metric-sublabel">Last 30 days</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-6 col-lg-4">
                 <div class="card text-center h-100 card-top-accent-green">
                     <div class="card-body">
-                        <h3 class="mb-2 text-success"><?= $total_orders ?></h3>
-                        <h6>Total Orders</h6>
-                        <p class="small text-muted mb-0">Completed &amp; in progress</p>
+                        <div class="metric-value"><?= $total_orders ?></div>
+                        <div class="metric-label">Total Orders</div>
+                        <div class="metric-sublabel">Completed &amp; in progress</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-6 col-lg-4">
                 <div class="card text-center h-100 card-top-accent-green">
                     <div class="card-body">
-                        <h3 class="mb-2 text-success"><?= $items_sold ?></h3>
-                        <h6>Items Sold</h6>
-                        <p class="small text-muted mb-0">Total units</p>
+                        <div class="metric-value"><?= $items_sold ?></div>
+                        <div class="metric-label">Items Sold</div>
+                        <div class="metric-sublabel">Total units</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Quick actions -->
-        <div class="d-flex gap-2 mb-4">
+        <div class="d-flex gap-2 mb-4 flex-wrap">
             <a href="<?= $base_url ?>/vendor-portal/products.php" class="btn btn-success">
                 Manage Products
             </a>
@@ -227,7 +213,7 @@ include '../includes/header.php';
             <div class="card shadow-sm">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
                                 <th>Order #</th>
                                 <th>Customer</th>
