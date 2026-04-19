@@ -3,7 +3,8 @@
  * customer/cart.php — Shopping Cart Page
  * Virginia Market Square
  *
- * Phase 4, Task 4.7
+ * Phase 4, Task 4.7 (original)
+ * Phase 7, Task 7.2 (AJAX data attributes)
  *
  * Layout (based on wireframe):
  *   Left (col-md-8):  Order summary — cart items with image, name, vendor,
@@ -15,6 +16,7 @@
  * Line totals (quantity × price) are calculated in PHP, not stored in the DB.
  *
  * Quantity update and Remove actions POST to customer/cart-update.php (Task 4.8).
+ * In Phase 7 these are intercepted by JS and sent via AJAX (fetch).
  * Proceed to Checkout links to customer/checkout.php (Task 4.9).
  */
 
@@ -35,10 +37,6 @@ if (!$customer_id) {
 }
 
 // ─── Fetch cart items with product, vendor, and category details ─────────────
-// This is the main cart query — JOINs pull everything we need for display.
-// We also check that products are still available and from verified vendors.
-// Items where the product was deactivated or vendor was unverified will still
-// show but with a warning (handled in the template below).
 $stmt = $conn->prepare(
     "SELECT c.cart_id, c.quantity,
             p.product_id, p.product_name, p.price, p.image_url, p.unit,
@@ -56,26 +54,18 @@ $cart_items = $stmt->get_result();
 $stmt->close();
 
 // ─── Calculate totals ───────────────────────────────────────────────────────
-// We loop through the result set to calculate the subtotal, then rewind
-// the result pointer so we can loop again in the HTML template.
 $subtotal    = 0.00;
 $item_count  = 0;
-$has_issues  = false;  // Flag if any items are unavailable
+$has_issues  = false;
 
-$items = [];  // Store items in array so we can loop twice
+$items = [];
 
 while ($item = $cart_items->fetch_assoc()) {
-    // Calculate line total
     $item['line_total'] = (float) $item['price'] * (int) $item['quantity'];
-
-    // Check if item is still valid (available product from verified vendor)
     $item['is_valid'] = ($item['is_available'] && $item['verified']
                          && $item['stock_quantity'] > 0);
-
-    // Check if quantity exceeds current stock
     $item['over_stock'] = ($item['quantity'] > $item['stock_quantity']);
 
-    // Only count valid items toward the subtotal
     if ($item['is_valid']) {
         $subtotal   += $item['line_total'];
         $item_count += (int) $item['quantity'];
@@ -94,7 +84,7 @@ include '../includes/header.php';
 
 <?php if (empty($items)): ?>
     <!-- Empty cart -->
-    <div class="text-center py-5">
+    <div class="text-center py-5" id="cart-empty">
         <h4 class="text-muted mb-3">Your cart is empty</h4>
         <p class="text-muted">Browse our products and add something you love!</p>
         <a href="<?= $base_url ?>/products.php" class="btn btn-success btn-lg">
@@ -111,16 +101,23 @@ include '../includes/header.php';
         </div>
     <?php endif; ?>
 
-    <div class="row g-4">
+    <!-- AJAX flash message area — hidden by default, shown by JS -->
+    <div id="cart-flash" class="alert d-none" role="alert"></div>
+
+    <div class="row g-4" id="cart-wrapper">
 
         <!-- ── LEFT: Order Summary (Cart Items) ─────────────────────────── -->
         <div class="col-md-8">
             <div class="card shadow-sm">
-                <div class="card-body p-0">
+                <div class="card-body p-0" id="cart-items-container">
 
                     <?php foreach ($items as $index => $item): ?>
+                        <!-- data-cart-item wrapper lets JS find and remove/update each row -->
                         <div class="d-flex gap-3 p-3 <?= $index > 0 ? 'border-top' : '' ?>
-                                    <?= !$item['is_valid'] ? 'bg-light opacity-75' : '' ?>">
+                                    <?= !$item['is_valid'] ? 'bg-light opacity-75' : '' ?>"
+                             data-cart-item="<?= (int) $item['cart_id'] ?>"
+                             data-price="<?= number_format((float) $item['price'], 2, '.', '') ?>"
+                             data-stock="<?= (int) $item['stock_quantity'] ?>">
 
                             <!-- Product image -->
                             <?php if (!empty($item['image_url'])): ?>
@@ -168,7 +165,7 @@ include '../includes/header.php';
                                 <?php if ($item['is_valid']): ?>
                                     <!-- Quantity update form -->
                                     <form action="<?= $base_url ?>/customer/cart-update.php" method="POST"
-                                          class="d-inline-flex align-items-center gap-1 mb-2">
+                                          class="d-inline-flex align-items-center gap-1 mb-2 cart-qty-form">
                                         <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
                                         <input type="hidden" name="cart_id" value="<?= (int) $item['cart_id'] ?>">
                                         <input type="hidden" name="action" value="update">
@@ -176,18 +173,21 @@ include '../includes/header.php';
                                         <!-- Minus button -->
                                         <button type="submit" name="quantity"
                                                 value="<?= max(1, (int) $item['quantity'] - 1) ?>"
-                                                class="btn btn-outline-secondary btn-sm"
+                                                class="btn btn-outline-secondary btn-sm cart-btn-minus"
                                                 <?= (int) $item['quantity'] <= 1 ? 'disabled' : '' ?>>
                                             &minus;
                                         </button>
 
                                         <!-- Quantity display -->
-                                        <span class="px-2 fw-bold"><?= (int) $item['quantity'] ?></span>
+                                        <span class="px-2 fw-bold cart-qty-display"
+                                              data-quantity="<?= (int) $item['quantity'] ?>">
+                                            <?= (int) $item['quantity'] ?>
+                                        </span>
 
                                         <!-- Plus button -->
                                         <button type="submit" name="quantity"
                                                 value="<?= min((int) $item['stock_quantity'], (int) $item['quantity'] + 1) ?>"
-                                                class="btn btn-outline-secondary btn-sm"
+                                                class="btn btn-outline-secondary btn-sm cart-btn-plus"
                                                 <?= (int) $item['quantity'] >= (int) $item['stock_quantity'] ? 'disabled' : '' ?>>
                                             +
                                         </button>
@@ -195,12 +195,13 @@ include '../includes/header.php';
                                 <?php endif; ?>
 
                                 <!-- Line total -->
-                                <div class="fw-bold mb-1">
+                                <div class="fw-bold mb-1 cart-line-total">
                                     $<?= number_format($item['line_total'], 2) ?>
                                 </div>
 
                                 <!-- Remove button -->
-                                <form action="<?= $base_url ?>/customer/cart-update.php" method="POST" class="d-inline">
+                                <form action="<?= $base_url ?>/customer/cart-update.php" method="POST"
+                                      class="d-inline cart-remove-form">
                                     <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
                                     <input type="hidden" name="cart_id" value="<?= (int) $item['cart_id'] ?>">
                                     <input type="hidden" name="action" value="remove">
@@ -229,8 +230,8 @@ include '../includes/header.php';
                     <h5 class="card-title mb-3">Order Summary</h5>
 
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Subtotal (<?= $item_count ?> item<?= $item_count !== 1 ? 's' : '' ?>)</span>
-                        <strong>$<?= number_format($subtotal, 2) ?></strong>
+                        <span id="cart-summary-label">Subtotal (<?= $item_count ?> item<?= $item_count !== 1 ? 's' : '' ?>)</span>
+                        <strong id="cart-summary-subtotal">$<?= number_format($subtotal, 2) ?></strong>
                     </div>
 
                     <div class="d-flex justify-content-between mb-2 text-muted">
@@ -242,22 +243,24 @@ include '../includes/header.php';
 
                     <div class="d-flex justify-content-between mb-3">
                         <strong class="fs-5">Estimated Total</strong>
-                        <strong class="fs-5 text-success">$<?= number_format($subtotal, 2) ?></strong>
+                        <strong class="fs-5 text-success" id="cart-summary-total">$<?= number_format($subtotal, 2) ?></strong>
                     </div>
 
-                    <?php if ($subtotal > 0): ?>
-                        <a href="<?= $base_url ?>/customer/checkout.php"
-                           class="btn btn-success btn-lg w-100">
-                            Proceed to Checkout
-                        </a>
-                    <?php else: ?>
-                        <button class="btn btn-success btn-lg w-100" disabled>
-                            Proceed to Checkout
-                        </button>
-                        <small class="text-muted d-block text-center mt-2">
-                            Remove unavailable items to continue
-                        </small>
-                    <?php endif; ?>
+                    <div id="cart-checkout-area">
+                        <?php if ($subtotal > 0): ?>
+                            <a href="<?= $base_url ?>/customer/checkout.php"
+                               class="btn btn-success btn-lg w-100">
+                                Proceed to Checkout
+                            </a>
+                        <?php else: ?>
+                            <button class="btn btn-success btn-lg w-100" disabled>
+                                Proceed to Checkout
+                            </button>
+                            <small class="text-muted d-block text-center mt-2">
+                                Remove unavailable items to continue
+                            </small>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>

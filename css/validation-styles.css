@@ -1,0 +1,40 @@
+/* ─── Form Validation Styles (Phase 7, Task 7.1) ──────────────────────── */
+
+/* Password strength meter bars */
+.password-strength-meter .strength-bar {
+    height: 4px;
+    flex: 1;
+    border-radius: 2px;
+    background-color: #e9ecef;
+    transition: background-color 0.3s ease;
+}
+
+/* Smooth transition for validation state changes */
+.form-control,
+.form-select {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Override Bootstrap's default green to match VMS design system */
+.form-control.is-valid,
+.form-select.is-valid {
+    border-color: var(--secondary-color);
+}
+.form-control.is-valid:focus,
+.form-select.is-valid:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.2rem rgba(107, 165, 71, 0.25);
+}
+
+/* Subtle pulse on invalid field to draw attention */
+@keyframes vms-shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-4px); }
+    40%      { transform: translateX(4px); }
+    60%      { transform: translateX(-2px); }
+    80%      { transform: translateX(2px); }
+}
+.form-control.is-invalid,
+.form-select.is-invalid {
+    animation: vms-shake 0.4s ease;
+}

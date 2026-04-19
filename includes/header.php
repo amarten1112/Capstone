@@ -63,7 +63,8 @@ if (is_logged_in() && get_current_user_type() === 'customer') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="<?= $base_url ?>/css/style.css?v=<?= filemtime(dirname(__DIR__) . '/css/style.css') ?>" rel="stylesheet">
+    <link href="<?= $base_url ?>/css/style.css" rel="stylesheet">
+    <link href="<?= $base_url ?>/css/validation-styles.css" rel="stylesheet">
 </head>
 <body>
 
