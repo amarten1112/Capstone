@@ -932,3 +932,64 @@ footer hr {
     background-color: var(--secondary-color);
     transform: translateY(-2px);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Mobile Section Collapse — index.php homepage accordion
+   Desktop (md+): all sections always visible, toggles hidden.
+   Mobile (<md):  sections start collapsed, tap header to expand.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Force open on desktop regardless of Bootstrap collapse state */
+@media (min-width: 768px) {
+    .mobile-collapsible {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+}
+
+/* Tap target for mobile section headers */
+.section-collapse-toggle {
+    cursor: pointer;
+    padding: 0.875rem 0;
+    border-bottom: 2px solid var(--primary-color);
+    margin-bottom: 0;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.section-collapse-toggle h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0;
+}
+
+.section-collapse-toggle .section-count {
+    font-size: 0.78rem;
+    color: #6c757d;
+    font-weight: 400;
+    margin-left: 0.35rem;
+}
+
+/* Chevron — points down when open, right when collapsed */
+.collapse-chevron {
+    display: inline-block;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+}
+
+.section-collapse-toggle.collapsed .collapse-chevron {
+    transform: rotate(-90deg);
+}
+
+/* Breathing room above content when a section opens */
+.mobile-collapsible {
+    padding-top: 0;
+}
+
+.mobile-collapsible.show {
+    padding-top: 1rem;
+}
