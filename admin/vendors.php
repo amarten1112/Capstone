@@ -64,6 +64,8 @@ include '../includes/header.php';
            class="btn btn-sm btn-outline-secondary">Dashboard</a>
         <a href="<?= $base_url ?>/admin/vendors.php"
            class="btn btn-sm btn-success">Vendors</a>
+        <a href="<?= $base_url ?>/admin/applications.php"
+           class="btn btn-sm btn-outline-secondary">Applications</a>
         <a href="<?= $base_url ?>/admin/users.php"
            class="btn btn-sm btn-outline-secondary">Users</a>
     </div>

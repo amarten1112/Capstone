@@ -75,6 +75,13 @@ include '../includes/header.php';
                 <span class="badge bg-warning text-dark ms-1"><?= $pending_vendors ?></span>
             <?php endif; ?>
         </a>
+        <a href="<?= $base_url ?>/admin/applications.php"
+           class="btn btn-sm btn-outline-secondary">
+            Applications
+            <?php if ($pending_apps > 0): ?>
+                <span class="badge bg-warning text-dark ms-1"><?= $pending_apps ?></span>
+            <?php endif; ?>
+        </a>
         <a href="<?= $base_url ?>/admin/users.php"
            class="btn btn-sm btn-outline-secondary">Users</a>
     </div>
@@ -143,9 +150,12 @@ include '../includes/header.php';
     <?php endif; ?>
     <?php if ($pending_apps > 0): ?>
     <div class="col-md-4">
-        <div class="alert alert-warning mb-0 d-flex justify-content-between align-items-center">
-            <span><strong><?= $pending_apps ?></strong> pending vendor application<?= $pending_apps !== 1 ? 's' : '' ?></span>
-        </div>
+        <a href="<?= $base_url ?>/admin/applications.php" class="text-decoration-none">
+            <div class="alert alert-warning mb-0 d-flex justify-content-between align-items-center">
+                <span><strong><?= $pending_apps ?></strong> pending vendor application<?= $pending_apps !== 1 ? 's' : '' ?></span>
+                <span class="small">Review &rsaquo;</span>
+            </div>
+        </a>
     </div>
     <?php endif; ?>
 </div>
