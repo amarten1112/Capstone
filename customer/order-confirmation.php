@@ -85,7 +85,7 @@ include '../includes/header.php';
                 <?php $idx = 0; while ($item = $order_items->fetch_assoc()): ?>
                     <div class="d-flex gap-3 p-3 <?= $idx > 0 ? 'border-top' : '' ?>">
                         <?php if (!empty($item['image_url'])): ?>
-                            <img src="<?= htmlspecialchars($item['image_url'], ENT_QUOTES, 'UTF-8') ?>"
+                            <img src="<?= $base_url . '/' . htmlspecialchars($item['image_url'], ENT_QUOTES, 'UTF-8') ?>"
                                  style="width:60px;height:60px;object-fit:cover;"
                                  class="rounded"
                                  alt="<?= htmlspecialchars($item['product_name'], ENT_QUOTES, 'UTF-8') ?>">

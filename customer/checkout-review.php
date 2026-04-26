@@ -321,7 +321,7 @@ include '../includes/header.php';
                 <?php foreach ($valid_items as $index => $item): ?>
                     <div class="d-flex gap-3 p-3 <?= $index > 0 ? 'border-top' : '' ?>">
                         <?php if (!empty($item['image_url'])): ?>
-                            <img src="<?= htmlspecialchars($item['image_url'], ENT_QUOTES, 'UTF-8') ?>"
+                            <img src="<?= $base_url . '/' . htmlspecialchars($item['image_url'], ENT_QUOTES, 'UTF-8') ?>"
                                  class="rounded product-thumb"
                                  alt="<?= htmlspecialchars($item['product_name'], ENT_QUOTES, 'UTF-8') ?>">
                         <?php endif; ?>
