@@ -69,6 +69,24 @@ include '../includes/header.php';
 </div>
 
 <?php
+// Show new vendor credentials if approval just happened
+if (!empty($_SESSION['new_vendor'])):
+    $nv = $_SESSION['new_vendor'];
+    unset($_SESSION['new_vendor']);
+?>
+<div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+    <h5 class="alert-heading mb-2">Vendor account created for <?= htmlspecialchars($nv['business'], ENT_QUOTES, 'UTF-8') ?></h5>
+    <p class="mb-1">Send these login credentials to <strong><?= htmlspecialchars($nv['name'], ENT_QUOTES, 'UTF-8') ?></strong>:</p>
+    <ul class="mb-2">
+        <li><strong>Email:</strong> <?= htmlspecialchars($nv['email'], ENT_QUOTES, 'UTF-8') ?></li>
+        <li><strong>Temp password:</strong> <code><?= htmlspecialchars($nv['password'], ENT_QUOTES, 'UTF-8') ?></code></li>
+    </ul>
+    <p class="mb-0 small">The vendor should log in and change their password immediately.</p>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<?php endif; ?>
+
+<?php
 $flash = get_flash();
 if ($flash):
 ?>

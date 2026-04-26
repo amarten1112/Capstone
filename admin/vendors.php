@@ -40,9 +40,8 @@ $vendors = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
 // ─── Tab counts ───────────────────────────────────────────────────────────────
 $counts = [];
-foreach (['all', 'pending', 'verified', 'featured'] as $f) {
+foreach (['all', 'verified', 'featured'] as $f) {
     $w = match($f) {
-        'pending'  => "AND v.verified = 0 AND u.is_active = 1",
         'verified' => "AND v.verified = 1",
         'featured' => "AND v.featured = 1",
         default    => '',
@@ -52,6 +51,10 @@ foreach (['all', 'pending', 'verified', 'featured'] as $f) {
     );
     $counts[$f] = $r ? (int) $r->fetch_assoc()['cnt'] : 0;
 }
+
+// Pending Approval = pending vendor applications (separate table)
+$r = $conn->query("SELECT COUNT(*) AS cnt FROM vendor_applications WHERE application_status = 'pending'");
+$counts['pending'] = $r ? (int) $r->fetch_assoc()['cnt'] : 0;
 
 include '../includes/header.php';
 ?>
@@ -73,7 +76,17 @@ include '../includes/header.php';
 
 <!-- Filter tabs -->
 <ul class="nav nav-pills mb-4">
-    <?php foreach (['all' => 'All', 'pending' => 'Pending Approval', 'verified' => 'Verified', 'featured' => 'Featured'] as $key => $label): ?>
+    <!-- Pending Approval links to applications page — applications are in a separate table -->
+    <li class="nav-item">
+        <a class="nav-link <?= $counts['pending'] > 0 ? 'text-warning' : '' ?>"
+           href="<?= $base_url ?>/admin/applications.php?filter=pending">
+            Pending Approval
+            <span class="badge <?= $counts['pending'] > 0 ? 'bg-warning text-dark' : 'bg-secondary' ?> ms-1">
+                <?= $counts['pending'] ?>
+            </span>
+        </a>
+    </li>
+    <?php foreach (['all' => 'All', 'verified' => 'Verified', 'featured' => 'Featured'] as $key => $label): ?>
         <li class="nav-item">
             <a class="nav-link <?= $filter === $key ? 'active' : '' ?>"
                href="?filter=<?= $key ?>">
