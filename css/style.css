@@ -21,7 +21,7 @@
     --secondary-color: #6ba547;
     --accent-color: #d4a574;
     --bg-warm: #f9f7f4;
-    --bg-section: #f0f4e8;
+    --bg-section: #caee83;
 
     /* Derived shades — used for hover states, borders, soft backgrounds */
     --primary-dark: #1e3a0e;
@@ -40,7 +40,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-body);
-    background-color: var(--bg-warm);
+    background-color: var(--accent-dark);
 }
 
 
