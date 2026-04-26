@@ -1,0 +1,6 @@
+# Block execution of any script files uploaded here
+<FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|cgi|sh|shtml)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+Options -ExecCGI

@@ -58,13 +58,14 @@ php_error.log
 
 
 # =============================================================================
-# IMAGE UPLOADS (future) — Uploaded by vendors/admin at runtime
-# If you add a file upload feature later, user-uploaded images should NOT
-# be in version control. Add those upload folder paths here when ready.
-# Example (uncomment when you have an uploads folder):
-# /uploads/
-# /images/uploads/
+# IMAGE UPLOADS — Uploaded by vendors at runtime, not part of source code.
+# Track the folder structure and .htaccess but not the actual image files.
 # =============================================================================
+
+/uploads/products/*.webp
+/uploads/products/*.jpg
+/uploads/products/*.jpeg
+/uploads/products/*.png
 
 
 # =============================================================================

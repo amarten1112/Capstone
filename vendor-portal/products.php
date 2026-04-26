@@ -3,18 +3,16 @@
  * vendor-portal/products.php — Vendor Product Management
  * Virginia Market Square
  *
- * Phase 4, Task 4.13
- *
  * Provides CRUD for the logged-in vendor's products:
- *   - GET (no action):  List all vendor's products in a table
- *   - GET ?action=add:  Show blank product form
- *   - GET ?action=edit&id=X: Show pre-filled edit form
- *   - POST action=add:  Insert new product
- *   - POST action=edit: Update existing product
- *   - POST action=toggle: Toggle is_available (activate/deactivate)
+ *   - GET (no action):      List all vendor's products in a table
+ *   - GET ?action=add:      Show blank product form
+ *   - GET ?action=edit&id=X Show pre-filled edit form
+ *   - POST action=add:      Insert new product
+ *   - POST action=edit:     Update existing product
+ *   - POST action=toggle:   Toggle is_available (activate/deactivate)
  *
- * Image upload is NOT handled here (Phase 8). The image_url field
- * accepts a text URL for now — vendors can paste an image path.
+ * Image upload: accepts JPEG/PNG, resizes to 800×800 max, converts to WebP.
+ * Files saved to uploads/products/. Requires GD with WebP support.
  */
 
 require_once '../includes/config.php';
@@ -32,6 +30,83 @@ if (!$vendor_id) {
 }
 
 $action = trim($_GET['action'] ?? $_POST['action'] ?? '');
+
+// ─── Image upload helper ─────────────────────────────────────────────────────
+/**
+ * Validates, resizes (max 800px), and saves an uploaded image as WebP.
+ * Returns the relative path on success, or sets $error and returns null.
+ */
+function process_product_image(array $file, int $vendor_id, string &$error): ?string
+{
+    if ($file['error'] === UPLOAD_ERR_NO_FILE) {
+        return null; // No file uploaded — caller keeps existing image_url
+    }
+
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $error = 'Upload failed. Please try again.';
+        return null;
+    }
+
+    if ($file['size'] > 5 * 1024 * 1024) {
+        $error = 'Image must be under 5 MB.';
+        return null;
+    }
+
+    // Verify actual MIME type — never trust the extension
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime  = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+
+    $src = match($mime) {
+        'image/jpeg' => imagecreatefromjpeg($file['tmp_name']),
+        'image/png'  => imagecreatefrompng($file['tmp_name']),
+        default      => null,
+    };
+
+    if (!$src) {
+        $error = 'Only JPEG and PNG images are accepted.';
+        return null;
+    }
+
+    // Resize to max 800×800, preserving aspect ratio
+    $orig_w = imagesx($src);
+    $orig_h = imagesy($src);
+    $max    = 800;
+
+    if ($orig_w > $max || $orig_h > $max) {
+        $ratio = min($max / $orig_w, $max / $orig_h);
+        $new_w = (int) round($orig_w * $ratio);
+        $new_h = (int) round($orig_h * $ratio);
+    } else {
+        $new_w = $orig_w;
+        $new_h = $orig_h;
+    }
+
+    $dst = imagecreatetruecolor($new_w, $new_h);
+
+    // Preserve PNG transparency as white background for WebP
+    if ($mime === 'image/png') {
+        $white = imagecolorallocate($dst, 255, 255, 255);
+        imagefill($dst, 0, 0, $white);
+    }
+
+    imagecopyresampled($dst, $src, 0, 0, 0, 0, $new_w, $new_h, $orig_w, $orig_h);
+    imagedestroy($src);
+
+    // Save as WebP at quality 85
+    $filename  = $vendor_id . '_' . uniqid() . '.webp';
+    $rel_path  = 'uploads/products/' . $filename;
+    $full_path = dirname(__DIR__) . '/' . $rel_path;
+
+    if (!imagewebp($dst, $full_path, 85)) {
+        imagedestroy($dst);
+        $error = 'Could not save image. Please try again.';
+        return null;
+    }
+
+    imagedestroy($dst);
+    return $rel_path;
+}
 
 // ─── Get categories for the form dropdown ───────────────────────────────────
 $categories = $conn->query(
@@ -64,19 +139,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ── Add or Edit product ─────────────────────────────────────────────
     if ($action === 'add' || $action === 'edit') {
-        $product_id    = (int) ($_POST['product_id'] ?? 0);
-        $product_name  = trim($_POST['product_name']  ?? '');
-        $description   = trim($_POST['description']   ?? '');
-        $category_id   = (int) ($_POST['category_id'] ?? 0);
-        $price         = (float) ($_POST['price']     ?? 0);
+        $product_id     = (int) ($_POST['product_id'] ?? 0);
+        $product_name   = trim($_POST['product_name']  ?? '');
+        $description    = trim($_POST['description']   ?? '');
+        $category_id    = (int) ($_POST['category_id'] ?? 0);
+        $price          = (float) ($_POST['price']     ?? 0);
         $stock_quantity = (int) ($_POST['stock_quantity'] ?? 0);
-        $unit          = trim($_POST['unit']           ?? '');
-        $image_url     = trim($_POST['image_url']      ?? '');
-        $is_available  = isset($_POST['is_available']) ? 1 : 0;
-        $featured      = isset($_POST['featured'])     ? 1 : 0;
+        $unit           = trim($_POST['unit']           ?? '');
+        $is_available   = isset($_POST['is_available']) ? 1 : 0;
+        $featured       = isset($_POST['featured'])     ? 1 : 0;
+
+        // ── Image upload ────────────────────────────────────────────────────
+        $error     = '';
+        $image_url = null; // resolved below
+
+        $uploaded_path = process_product_image($_FILES['product_image'] ?? ['error' => UPLOAD_ERR_NO_FILE], $vendor_id, $error);
+
+        if ($error) {
+            // Image validation failed — redirect back to form
+            if ($action === 'edit' && $product_id > 0) {
+                redirect($base_url . '/vendor-portal/products.php?action=edit&id=' . $product_id);
+            } else {
+                redirect($base_url . '/vendor-portal/products.php?action=add');
+            }
+        }
+
+        if ($uploaded_path !== null) {
+            // New image uploaded — use it and delete the old one if editing
+            $image_url = $uploaded_path;
+
+            if ($action === 'edit' && $product_id > 0) {
+                $stmt = $conn->prepare('SELECT image_url FROM products WHERE product_id = ? AND vendor_id = ?');
+                $stmt->bind_param('ii', $product_id, $vendor_id);
+                $stmt->execute();
+                $old = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+
+                if (!empty($old['image_url']) && str_starts_with($old['image_url'], 'uploads/')) {
+                    $old_path = dirname(__DIR__) . '/' . $old['image_url'];
+                    if (file_exists($old_path)) {
+                        unlink($old_path);
+                    }
+                }
+            }
+        } else {
+            // No new file — keep existing image_url for edits, empty for add
+            if ($action === 'edit' && $product_id > 0) {
+                $stmt = $conn->prepare('SELECT image_url FROM products WHERE product_id = ? AND vendor_id = ?');
+                $stmt->bind_param('ii', $product_id, $vendor_id);
+                $stmt->execute();
+                $existing = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+                $image_url = $existing['image_url'] ?? '';
+            } else {
+                $image_url = '';
+            }
+        }
 
         // Validation
-        $error = '';
         if ($product_name === '') {
             $error = 'Product name is required.';
         } elseif ($category_id <= 0) {
@@ -185,7 +305,7 @@ if ($action === 'add' || $action === 'edit') {
 
             <div class="card shadow-sm">
                 <div class="card-body p-4">
-                    <form method="POST" action="products.php">
+                    <form method="POST" action="products.php" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
                         <input type="hidden" name="action" value="<?= $action ?>">
                         <?php if ($product): ?>
@@ -249,13 +369,28 @@ if ($action === 'add' || $action === 'edit') {
                                        maxlength="50">
                             </div>
 
-                            <!-- Image URL -->
-                            <div class="col-md-6">
-                                <label class="form-label">Image URL <span class="text-muted">(optional)</span></label>
-                                <input type="text" class="form-control" name="image_url"
-                                       placeholder="images/products/my-product.webp"
-                                       value="<?= htmlspecialchars($product['image_url'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                                       maxlength="255">
+                            <!-- Product image upload -->
+                            <div class="col-12">
+                                <label class="form-label">Product Image <span class="text-muted">(JPEG or PNG, max 5 MB)</span></label>
+
+                                <?php if (!empty($product['image_url'])): ?>
+                                <div class="mb-2">
+                                    <img id="image-preview"
+                                         src="<?= $base_url . '/' . htmlspecialchars($product['image_url'], ENT_QUOTES, 'UTF-8') ?>"
+                                         alt="Current image"
+                                         style="width:100px;height:100px;object-fit:cover;"
+                                         class="rounded border">
+                                    <div class="small text-muted mt-1">Current image — upload a new file to replace it.</div>
+                                </div>
+                                <?php else: ?>
+                                <img id="image-preview" src="" alt=""
+                                     style="display:none;width:100px;height:100px;object-fit:cover;"
+                                     class="rounded border mb-2">
+                                <?php endif; ?>
+
+                                <input type="file" class="form-control" name="product_image"
+                                       id="product_image" accept="image/jpeg,image/png">
+                                <div class="form-text">Image will be resized to 800×800 px and converted to WebP automatically.</div>
                             </div>
 
                             <!-- Description -->
@@ -300,6 +435,16 @@ if ($action === 'add' || $action === 'edit') {
             </div>
         </div>
     </div>
+
+    <script>
+    document.getElementById('product_image').addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const preview = document.getElementById('image-preview');
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+    });
+    </script>
 
     <?php
     include '../includes/footer.php';
