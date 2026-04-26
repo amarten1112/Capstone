@@ -149,8 +149,8 @@ jobs:
       # STEP 6: Upload files to IONOS via SFTP
       #
       # mirror --reverse syncs local → remote (repo → server)
-      # --ignore-time    compares files by content not timestamp
-      #                  (runner VM clock differs from server clock)
+      # --transfer-all    always uploads every file regardless of size/time
+      #                  (--ignore-time was skipping same-size changed files)
       # --verbose        lists every file transferred in the Actions log
       #                  so you can confirm exactly what went up
       #
@@ -174,7 +174,7 @@ jobs:
           set sftp:auto-confirm yes
           set net:max-retries 3
           set net:reconnect-interval-base 5
-          mirror --reverse --verbose --ignore-time \
+          mirror --reverse --verbose --transfer-all \
             --exclude-glob .git/ \
             --exclude-glob .github/ \
             --exclude-glob node_modules/ \
