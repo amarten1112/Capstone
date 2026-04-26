@@ -222,6 +222,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $item_stmt->close();
                     $stock_stmt->close();
 
+                    // 3b. Create one fulfillment row per unique vendor
+                    $vendor_ids = array_unique(array_column($valid_items, 'vendor_id'));
+                    $fulfillment_stmt = $conn->prepare(
+                        "INSERT IGNORE INTO order_fulfillments (order_id, vendor_id, status)
+                         VALUES (?, ?, 'processing')"
+                    );
+                    foreach ($vendor_ids as $vid) {
+                        $fulfillment_stmt->bind_param('ii', $order_id, $vid);
+                        $fulfillment_stmt->execute();
+                    }
+                    $fulfillment_stmt->close();
+
                     // 4. Log transaction
                     $txn_stmt = $conn->prepare(
                         "INSERT INTO transactions

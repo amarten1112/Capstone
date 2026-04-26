@@ -38,10 +38,8 @@ $total_products = (int) $stmt->get_result()->fetch_assoc()['cnt'];
 $stmt->close();
 
 $stmt = $conn->prepare(
-    "SELECT COUNT(DISTINCT oi.order_id) AS cnt
-     FROM order_items oi
-     JOIN orders o ON oi.order_id = o.order_id
-     WHERE oi.vendor_id = ? AND o.order_status = 'pending'"
+    "SELECT COUNT(*) AS cnt FROM order_fulfillments
+     WHERE vendor_id = ? AND status = 'processing'"
 );
 $stmt->bind_param('i', $vendor_id);
 $stmt->execute();
@@ -89,15 +87,17 @@ $stmt->close();
 // ─── Recent Orders ──────────────────────────────────────────────────────────
 $stmt = $conn->prepare(
     "SELECT o.order_id, o.order_status, o.order_date,
+            f.status AS fulfillment_status,
             u.full_name AS customer_name,
             SUM(oi.line_total) AS vendor_total,
             SUM(oi.quantity) AS vendor_items
-     FROM order_items oi
-     JOIN orders o    ON oi.order_id = o.order_id
+     FROM order_fulfillments f
+     JOIN orders o    ON f.order_id = o.order_id
      JOIN customers c ON o.customer_id = c.customer_id
      JOIN users u     ON c.user_id = u.user_id
-     WHERE oi.vendor_id = ?
-     GROUP BY o.order_id, o.order_status, o.order_date, u.full_name
+     JOIN order_items oi ON oi.order_id = f.order_id AND oi.vendor_id = f.vendor_id
+     WHERE f.vendor_id = ?
+     GROUP BY o.order_id, o.order_status, o.order_date, f.status, u.full_name
      ORDER BY o.order_date DESC
      LIMIT 10"
 );
@@ -106,13 +106,14 @@ $stmt->execute();
 $recent_orders = $stmt->get_result();
 $stmt->close();
 
-$status_badges = [
-    'pending'    => 'bg-warning text-dark',
+$fulfillment_badges = [
     'processing' => 'bg-info text-dark',
     'shipped'    => 'bg-primary',
     'delivered'  => 'bg-success',
-    'cancelled'  => 'bg-secondary',
-    'refunded'   => 'bg-danger',
+];
+$order_badges = [
+    'cancelled' => 'bg-secondary',
+    'refunded'  => 'bg-danger',
 ];
 
 include '../includes/header.php';
@@ -150,13 +151,15 @@ include '../includes/header.php';
                 </a>
             </div>
             <div class="col-6 col-lg-4">
-                <div class="card text-center h-100 card-top-accent-earth">
-                    <div class="card-body">
-                        <div class="metric-value text-accent-earth"><?= $pending_orders ?></div>
-                        <div class="metric-label">Pending Orders</div>
-                        <div class="metric-sublabel">Awaiting processing</div>
+                <a href="<?= $base_url ?>/vendor-portal/orders.php?filter=processing" class="text-decoration-none">
+                    <div class="card text-center h-100 card-top-accent-earth">
+                        <div class="card-body">
+                            <div class="metric-value text-accent-earth"><?= $pending_orders ?></div>
+                            <div class="metric-label">Processing Orders</div>
+                            <div class="metric-sublabel">Awaiting fulfillment</div>
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
             <div class="col-6 col-lg-4">
                 <div class="card text-center h-100 card-top-accent-green">
@@ -201,6 +204,9 @@ include '../includes/header.php';
             <a href="<?= $base_url ?>/vendor-portal/products.php" class="btn btn-success">
                 Manage Products
             </a>
+            <a href="<?= $base_url ?>/vendor-portal/orders.php" class="btn btn-success">
+                Manage Orders
+            </a>
             <a href="<?= $base_url ?>/vendor-detail.php?vendor_id=<?= $vendor_id ?>" class="btn btn-outline-success">
                 View My Storefront
             </a>
@@ -225,7 +231,14 @@ include '../includes/header.php';
                         </thead>
                         <tbody>
                             <?php while ($order = $recent_orders->fetch_assoc()):
-                                $badge = $status_badges[$order['order_status']] ?? 'bg-secondary';
+                                $cancelled = in_array($order['order_status'], ['cancelled','refunded'], true);
+                                if ($cancelled) {
+                                    $badge      = $order_badges[$order['order_status']] ?? 'bg-secondary';
+                                    $badge_text = ucfirst($order['order_status']);
+                                } else {
+                                    $badge      = $fulfillment_badges[$order['fulfillment_status']] ?? 'bg-secondary';
+                                    $badge_text = ucfirst($order['fulfillment_status']);
+                                }
                             ?>
                                 <tr>
                                     <td><strong>#<?= (int) $order['order_id'] ?></strong></td>
@@ -235,7 +248,7 @@ include '../includes/header.php';
                                     <td>$<?= number_format((float) $order['vendor_total'], 2) ?></td>
                                     <td>
                                         <span class="badge <?= $badge ?>">
-                                            <?= ucfirst(htmlspecialchars($order['order_status'], ENT_QUOTES, 'UTF-8')) ?>
+                                            <?= htmlspecialchars($badge_text, ENT_QUOTES, 'UTF-8') ?>
                                         </span>
                                     </td>
                                 </tr>
