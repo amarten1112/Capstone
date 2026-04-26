@@ -40,7 +40,8 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-body);
-    background-color: var(--bg-warm);
+    background: linear-gradient(135deg, #e8f2d8 0%, #f9f7f4 100%);
+    min-height: 100vh;
 }
 
 
